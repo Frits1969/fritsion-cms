@@ -114,7 +114,7 @@ class Installer
         ];
 
         $table = $this->prefix . 'settings';
-        $stmt = $this->db->prepare("INSERT INTO $table (setting_key, setting_value) VALUES (?, ?)");
+        $stmt = $this->db->prepare("REPLACE INTO $table (setting_key, setting_value) VALUES (?, ?)");
 
         foreach ($settings as $key => $value) {
             $stmt->bind_param("ss", $key, $value);
@@ -137,7 +137,7 @@ class Installer
         $table = $this->prefix . 'users';
 
         $stmt = $this->db->prepare(
-            "INSERT INTO $table (username, email, password_hash, role, status) VALUES (?, ?, ?, 'admin', 'active')"
+            "REPLACE INTO $table (username, email, password_hash, role, status) VALUES (?, ?, ?, 'admin', 'active')"
         );
 
         $stmt->bind_param("sss", $username, $email, $passwordHash);
@@ -172,7 +172,8 @@ class Installer
         $envContent .= "DB_USERNAME={$data['db_user']}\n";
         $envContent .= "DB_PASSWORD={$data['db_pass']}\n";
         $envContent .= "DB_PREFIX={$this->prefix}\n\n"; // Added prefix
-        $envContent .= "DEFAULT_LANGUAGE=nl\n";
+        $lang = $_SESSION['lang'] ?? 'nl';
+        $envContent .= "DEFAULT_LANGUAGE=$lang\n";
 
         if (file_put_contents($envPath, $envContent) === false) {
             $this->errors[] = "Failed to write .env file";

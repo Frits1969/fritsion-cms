@@ -1,3 +1,14 @@
+<?php
+$lang = $GLOBALS['lang'] ?? [];
+extract($lang);
+
+$backoffice_title = $backoffice_title ?? 'Backoffice';
+$pages_title = $pages_title ?? "Pagina's";
+$nav_back_to_dashboard = $nav_back_to_dashboard ?? 'Terug naar Dashboard';
+$role_super_admin = $role_super_admin ?? 'Super Admin';
+$nav_profile = $nav_profile ?? 'Profiel';
+$nav_logout = $nav_logout ?? 'Uitloggen';
+?>
 <!DOCTYPE html>
 <html lang="<?= $_SESSION['lang'] ?? 'nl' ?>">
 
@@ -9,430 +20,7 @@
     <link rel="shortcut icon" href="/assets/logo/logo_fritsion_cms_favicon.ico">
     <!-- Google Fonts: Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary-bg: #F1F4F9;
-            --secondary-bg: #FFFFFF;
-            --accent-color: #8B5CF6;
-            --accent-purple: #3B2A8C;
-            --accent-pink: #E8186A;
-            --accent-orange: #F0961B;
-            --accent-red: #ef4444;
-            --accent-gradient: linear-gradient(135deg, #E8186A 0%, #C41257 40%, #F0961B 100%);
-            --text-main: #1A1336;
-            --text-muted: #64748b;
-            --glass-bg: rgba(255, 255, 255, 0.8);
-            --glass-border: rgba(0, 0, 0, 0.05);
-            --sidebar-width: 260px;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--primary-bg);
-            color: var(--text-main);
-            overflow-x: hidden;
-            display: flex;
-        }
-
-        /* Sidebar Styling */
-        .sidebar {
-            width: var(--sidebar-width);
-            height: 100vh;
-            background: #FFFFFF;
-            border-right: 1px solid rgba(0, 0, 0, 0.05);
-            position: fixed;
-            left: 0;
-            top: 0;
-            display: flex;
-            flex-direction: column;
-            z-index: 100;
-        }
-
-        .sidebar-header {
-            padding: 30px 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .sidebar-header img {
-            max-width: 130px;
-            height: auto;
-        }
-
-        .sidebar-nav {
-            flex: 1;
-            padding: 20px 15px;
-        }
-
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 15px;
-            color: #475569;
-            text-decoration: none;
-            border-radius: 10px;
-            margin-bottom: 8px;
-            transition: all 0.3s ease;
-            font-weight: 500;
-        }
-
-        .nav-item:hover,
-        .nav-item.active {
-            background: rgba(232, 24, 106, 0.05);
-            color: var(--accent-pink);
-        }
-
-        .nav-item.active {
-            position: relative;
-            background: rgba(232, 24, 106, 0.1) !important;
-        }
-
-        .nav-item.active::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 3px;
-            background: var(--accent-orange);
-            border-radius: 3px 3px 0 0;
-            z-index: 5;
-        }
-
-        .sidebar-footer {
-            padding: 20px;
-            border-top: 1px solid rgba(0, 0, 0, 0.05);
-            text-align: center;
-        }
-
-        .sidebar-footer p {
-            font-size: 0.8rem;
-            color: #64748b;
-            font-weight: 500;
-        }
-
-        .main-wrapper {
-            flex: 1;
-            margin-left: var(--sidebar-width);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .topbar {
-            height: 70px;
-            padding: 0 40px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: var(--glass-bg);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid var(--glass-border);
-            position: sticky;
-            top: 0;
-            z-index: 90;
-        }
-
-        .content {
-            padding: 40px;
-            max-width: 1200px;
-            margin: 0 auto;
-            width: 100%;
-        }
-
-        .header-section {
-            margin-bottom: 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-        }
-
-        .header-section h1 {
-            font-size: 2rem;
-            font-weight: 800;
-            margin-bottom: 10px;
-        }
-
-        .header-section p {
-            color: var(--text-muted);
-            font-size: 1.1rem;
-        }
-
-        .btn-primary {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 12px 25px;
-            background: var(--accent-gradient);
-            border: none;
-            border-radius: 10px;
-            color: white;
-            font-weight: 700;
-            text-decoration: none;
-            cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(232, 24, 106, 0.3);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(232, 24, 106, 0.45);
-        }
-
-        .btn-secondary {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 38px;
-            height: 38px;
-            background: rgba(0, 0, 0, 0.03);
-            border: 1px solid var(--glass-border);
-            border-radius: 8px;
-            color: var(--text-main);
-            font-size: 1.1rem;
-            text-decoration: none;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            cursor: pointer;
-        }
-
-        .btn-secondary:hover {
-            background: rgba(0, 0, 0, 0.06);
-            transform: translateY(-2px) scale(1.05);
-            border-color: var(--text-muted);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-        }
-
-        .btn-danger {
-            color: var(--accent-red);
-        }
-
-        .btn-danger:hover {
-            color: var(--accent-red);
-            border-color: var(--accent-red);
-        }
-
-        /* Table Styling */
-        .table-card {
-            background: var(--secondary-bg);
-            border-radius: 20px;
-            border: 1px solid var(--glass-border);
-            padding: 20px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: left;
-        }
-
-        th {
-            background: rgba(255, 255, 255, 0.03);
-            padding: 15px 20px;
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--text-muted);
-            font-weight: 700;
-            border-bottom: 1px solid var(--glass-border);
-        }
-
-        td {
-            padding: 15px 20px;
-            border-bottom: 1px solid var(--glass-border);
-            font-size: 0.95rem;
-            color: var(--text-main);
-        }
-
-        tr:last-child td {
-            border-bottom: none;
-        }
-
-        tr:hover td {
-            background: rgba(255, 255, 255, 0.01);
-        }
-
-        .status-badge {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            text-transform: uppercase;
-        }
-
-        .status-published {
-            background: rgba(232, 24, 106, 0.1);
-            color: var(--accent-pink);
-        }
-
-        .status-draft {
-            background: rgba(240, 150, 27, 0.1);
-            color: var(--accent-orange);
-        }
-
-        .status-archived {
-            background: rgba(148, 163, 184, 0.1);
-            color: var(--text-muted);
-        }
-
-        .actions {
-            display: flex;
-            gap: 10px;
-        }
-
-        /* User Widget & Menu */
-        .user-widget {
-            position: relative;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            cursor: pointer;
-            padding: 5px 10px;
-            border-radius: 50px;
-            transition: background 0.3s;
-        }
-
-        .user-widget:hover {
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        .user-menu {
-            position: absolute;
-            top: calc(100% + 10px);
-            right: 0;
-            width: 200px;
-            background: var(--secondary-bg);
-            border: 1px solid var(--glass-border);
-            border-radius: 12px;
-            padding: 10px;
-            display: none;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-            z-index: 110;
-        }
-
-        .user-menu.active {
-            display: block;
-            animation: slideUp 0.3s ease;
-        }
-
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .menu-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 12px 15px;
-            color: var(--text-muted);
-            text-decoration: none;
-            border-radius: 8px;
-            transition: all 0.2s;
-            font-size: 0.9rem;
-        }
-
-        .menu-item:hover {
-            background: rgba(255, 255, 255, 0.05);
-            color: var(--text-main);
-        }
-
-        .alert {
-            padding: 15px 20px;
-            border-radius: 12px;
-            margin-bottom: 30px;
-            font-size: 0.95rem;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .alert-error {
-            background: rgba(239, 68, 68, 0.1);
-            color: #ef4444;
-            border: 1px solid rgba(239, 68, 68, 0.2);
-        }
-
-        .alert-success {
-            background: rgba(16, 185, 129, 0.1);
-            color: #10b981;
-            border: 1px solid rgba(16, 185, 129, 0.2);
-        }
-
-        .topbar-actions {
-            display: flex;
-            align-items: center;
-            gap: 25px;
-        }
-
-        .lang-select {
-            display: flex;
-            position: relative;
-            align-items: center;
-            gap: 10px;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 5px;
-            border-radius: 10px;
-            border: 1px solid var(--glass-border);
-            height: 38px;
-            overflow: hidden;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            width: fit-content;
-        }
-
-        .lang-select a {
-            display: none;
-            line-height: 0;
-            transition: all 0.3s ease;
-        }
-
-        .lang-select a.active {
-            display: block;
-        }
-
-        .lang-select.expanded {
-            height: 80px;
-            flex-direction: column;
-            gap: 8px;
-            padding: 8px 5px;
-            overflow: visible;
-        }
-
-        .lang-select.expanded a {
-            display: block;
-        }
-
-        .flag-icon {
-            width: 32px;
-            height: 22px;
-            border-radius: 3px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-
-        .flag-icon:hover {
-            transform: scale(1.1);
-        }
-    </style>
+    <link rel="stylesheet" href="/assets/css/admin_shared.css">
 </head>
 
 <body>
@@ -448,8 +36,7 @@
                     style="color: var(--text-muted); text-decoration: none; font-size: 0.9rem;"><?= $nav_back_to_dashboard ?></a>
 
                 <div class="user-widget" id="user-widget">
-                    <div class="user-avatar"
-                        style="width: 32px; height: 32px; background: var(--accent-gradient); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.85rem; color: white;">
+                    <div class="user-avatar">
                         <?php
                         $name = $_SESSION['username'] ?? 'Admin';
                         echo strtoupper(substr($name, 0, 1) . (strlen($name) > 1 ? substr($name, 1, 1) : ''));
@@ -488,12 +75,16 @@
 
             <?php if ($success_param === 'created'): ?>
                 <div class="alert alert-success"><span>✅</span> <?= $success_page_created ?></div>
+            <?php elseif ($success_param === 'updated'): ?>
+                <div class="alert alert-success"><span>✅</span> <?= $success_page_updated ?></div>
             <?php elseif ($success_param === 'deleted'): ?>
                 <div class="alert alert-success"><span>✅</span> <?= $success_page_deleted ?></div>
             <?php endif; ?>
 
             <?php if ($error_param === 'not_found'): ?>
                 <div class="alert alert-error"><span>⚠️</span> <?= $error_page_not_found ?></div>
+            <?php elseif ($error_param === 'delete_failed'): ?>
+                <div class="alert alert-error"><span>⚠️</span> <?= $error_page_delete ?></div>
             <?php endif; ?>
 
             <div class="header-section">
@@ -531,7 +122,7 @@
                                         <?php if (($page['is_homepage'] ?? 0) == 1): ?>
                                             <span
                                                 style="display: inline-flex; align-items: center; justify-content: center; background: var(--accent-orange); color: white; font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; margin-left: 8px; vertical-align: middle;">
-                                                HOUSE
+                                                <?= $badge_homepage ?? 'HOME' ?>
                                             </span>
                                         <?php endif; ?>
                                     </td>
@@ -544,12 +135,12 @@
                                     <td class="actions">
                                         <?php if ($page['status'] === 'published'): ?>
                                             <a href="/backoffice/pages/toggle/<?= $page['id'] ?>" class="btn-secondary"
-                                                title="<?= $btn_unpublish ?? 'Depubliceren' ?>">
+                                                title="<?= $btn_unpublish ?>">
                                                 <span>🔓</span>
                                             </a>
                                         <?php else: ?>
                                             <a href="/backoffice/pages/toggle/<?= $page['id'] ?>" class="btn-secondary"
-                                                title="<?= $btn_publish ?? 'Publiceren' ?>">
+                                                title="<?= $btn_publish ?>">
                                                 <span>🔒</span>
                                             </a>
                                         <?php endif; ?>

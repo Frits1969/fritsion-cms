@@ -18,7 +18,7 @@ use Fritsion\Controllers\AdminController;
 
 class App
 {
-    const VERSION = '0.1.5';
+    const VERSION = '0.1.6';
     protected static $instance;
 
     public function __construct()
@@ -39,12 +39,19 @@ class App
     {
         session_start();
 
+        // Load Configuration if installed
+        $defaultLang = 'nl';
+        if (file_exists(__DIR__ . '/../install.lock')) {
+            Config::load(__DIR__ . '/../.env');
+            $defaultLang = Config::get('DEFAULT_LANGUAGE', 'nl');
+        }
+
         // taal bepalen
         if (isset($_GET['lang'])) {
             $_SESSION['lang'] = $_GET['lang'];
         }
 
-        $selected = $_SESSION['lang'] ?? 'nl';
+        $selected = $_SESSION['lang'] ?? $defaultLang;
 
         // taalbestand laden
         $lang = Language::load($selected);
@@ -94,6 +101,8 @@ class App
                     $controller->deletePage($matches[1]);
                 } elseif ($uri === '/backoffice/site-status/toggle') {
                     $controller->toggleSiteStatus();
+                } elseif ($uri === '/backoffice/templates') {
+                    $controller->templates();
                 } elseif ($uri === '/backoffice/templates/homepage') {
                     $controller->layoutConfigurator();
                 } elseif ($uri === '/backoffice/templates/homepage/save') {
@@ -102,6 +111,14 @@ class App
                     $controller->contentLayoutConfigurator();
                 } elseif ($uri === '/backoffice/templates/content/save') {
                     $controller->saveContentLayoutConfig();
+                } elseif ($uri === '/backoffice/templates/add') {
+                    $controller->addTemplate();
+                } elseif (preg_match('#^/backoffice/templates/edit/(\d+)$#', $uri, $matches)) {
+                    $controller->templateConfigurator($matches[1]);
+                } elseif (preg_match('#^/backoffice/templates/edit/(\d+)/save$#', $uri, $matches)) {
+                    $controller->saveTemplateConfig($matches[1]);
+                } elseif (preg_match('#^/backoffice/templates/delete/(\d+)$#', $uri, $matches)) {
+                    $controller->deleteTemplate($matches[1]);
                 } elseif (preg_match('#^/backoffice/templates/get/(\d+)$#', $uri, $matches)) {
                     $controller->getTemplate($matches[1]);
                 } elseif ($uri === '/backoffice/media/upload') {

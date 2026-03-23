@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS fcms_pages (
 -- Templates Table: Layout definitions
 CREATE TABLE IF NOT EXISTS fcms_templates (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
+    name VARCHAR(255) NOT NULL UNIQUE,
     type ENUM('homepage', 'content') NOT NULL,
     layout_json LONGTEXT NOT NULL,
     preview_type VARCHAR(50) DEFAULT 'usps',
@@ -72,8 +72,7 @@ CREATE TABLE IF NOT EXISTS fcms_templates (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Default Templates
-INSERT INTO fcms_templates (name, type, layout_json, is_active, icon, preview_type) VALUES 
-('Homepage', 'homepage', '{"header":{"sections":[{"type":"logo"},{"type":"menu"},{"type":"cta"}]},"main":{"rows":[{"columns":[{"type":"text"},{"type":"image"}]}]},"footer":{"sections":[{"type":"text"},{"type":"socials"}]}}', 1, '🏠', 'usps'),
-('Contentpagina', 'content', '{"header":{"sections":[{"type":"logo"},{"type":"menu"},{"type":"cta"}]},"main":{"rows":[{"columns":[{"type":"text"}]}]},"footer":{"sections":[{"type":"text"},{"type":"socials"}]}}', 1, '📄', 'usps');
+REPLACE INTO fcms_templates (name, type, layout_json, is_active, icon, preview_type) VALUES 
+('Homepage', 'homepage', '{"header":{"sections":[{"type":"logo"},{"type":"menu"},{"type":"cta"}]},"main":{"rows":[{"columns":[{"type":"text"},{"type":"image"}]}]},"footer":{"sections":[{"type":"text"},{"type":"socials"}]}}', 1, '🏠', 'usps');
 
 

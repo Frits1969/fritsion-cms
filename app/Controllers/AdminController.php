@@ -122,7 +122,7 @@ class AdminController extends BaseController
             $stmt->close();
 
             if (!$user || !password_verify($currentPassword, $user['password_hash'])) {
-                $error = "Huidig wachtwoord is onjuist.";
+                $error = $GLOBALS['lang']['error_current_password_incorrect'];
             } else {
                 // 2. Perform updates
                 $updates = [];
@@ -143,7 +143,7 @@ class AdminController extends BaseController
 
                 if (!empty($newPassword)) {
                     if ($newPassword !== $confirmPassword) {
-                        $error = "Nieuwe wachtwoorden komen niet overeen.";
+                        $error = $GLOBALS['lang']['error_passwords_mismatch'];
                     } else {
                         $updates[] = "password_hash = ?";
                         $params[] = password_hash($newPassword, PASSWORD_DEFAULT);
@@ -160,16 +160,16 @@ class AdminController extends BaseController
                     $stmt->bind_param($types, ...$params);
 
                     if ($stmt->execute()) {
-                        $success = "Profiel succesvol bijgewerkt.";
+                        $success = $GLOBALS['lang']['success_profile_updated'];
                         if (!empty($username)) {
                             $_SESSION['username'] = $username;
                         }
                     } else {
-                        $error = "Er is een fout opgetreden bij het bijwerken van het profiel.";
+                        $error = $GLOBALS['lang']['error_profile_update'];
                     }
                     $stmt->close();
                 } elseif (!$error) {
-                    $error = "Geen wijzigingen opgegeven.";
+                    $error = $GLOBALS['lang']['error_no_changes'];
                 }
             }
         }
@@ -212,7 +212,7 @@ class AdminController extends BaseController
             } else {
                 // For now, if it's the very first login and DB is empty or something, 
                 // we might want a fallback, but let's stick to real auth now.
-                $error = "Ongeldige gebruikersnaam of wachtwoord.";
+                $error = $GLOBALS['lang']['error_invalid_login'];
                 $this->view('admin/login', ['error' => $error]);
                 return;
             }
@@ -240,6 +240,7 @@ class AdminController extends BaseController
             $siteDomain = $_POST['site_domain'] ?? '';
             $siteLogo = $_POST['site_logo'] ?? '';
             $hideLogo = isset($_POST['hide_logo']) ? '1' : '0';
+            $defaultLang = $_POST['default_lang'] ?? 'nl';
             $dbUser = $_POST['db_user'] ?? '';
             $dbPass = $_POST['db_pass'] ?? '';
 
@@ -278,8 +279,13 @@ class AdminController extends BaseController
                         'APP_NAME' => $siteName,
                         'APP_URL' => "http://" . $siteDomain,
                         'DB_USERNAME' => $dbUser,
-                        'DB_PASSWORD' => $dbPass
+                        'DEFAULT_LANGUAGE' => $defaultLang
                     ];
+
+                    // Only update password if provided
+                    if (!empty($dbPass)) {
+                        $replacements['DB_PASSWORD'] = $dbPass;
+                    }
 
                     foreach ($replacements as $key => $value) {
                         // Match key=value (with optional quotes)
@@ -289,23 +295,24 @@ class AdminController extends BaseController
                         if (preg_match($pattern, $envContent)) {
                             $envContent = preg_replace($pattern, $replacement, $envContent);
                         } else {
-                            // If not found, append it (though it should be there)
+                            // If not found, append it
                             $envContent .= "\n" . $replacement;
                         }
                     }
 
                     if (file_put_contents($envPath, $envContent) === false) {
-                        throw new \Exception("Kon .env bestand niet schrijven.");
+                        throw new \Exception($GLOBALS['lang']['error_env_write']);
                     }
 
-                    // Reload config to reflect changes immediately in the current request if needed
+                    // Reload config to reflect changes immediately
                     Config::load($envPath);
                 }
 
-                $success = "Instellingen succesvol bijgewerkt.";
+                $success = $GLOBALS['lang']['success_settings_updated'];
             } catch (\Exception $e) {
-                $error = "Er is een fout opgetreden: " . $e->getMessage();
+                $error = $GLOBALS['lang']['error_occurred'] . ": " . $e->getMessage();
             }
+
         }
 
         // Fetch DB settings from table
@@ -410,12 +417,12 @@ class AdminController extends BaseController
             }
 
             if (empty($title) || empty($slug)) {
-                $error = "Titel en slug zijn verplicht.";
+                $error = $GLOBALS['lang']['error_title_slug_required'];
             } else {
                 // Check if slug already exists
                 $slugCheck = $db->query("SELECT id FROM {$prefix}pages WHERE slug = '" . $db->real_escape_string($slug) . "' LIMIT 1");
                 if ($slugCheck && $slugCheck->num_rows > 0) {
-                    $error = "Deze slug bestaat al. Kies een unieke slug.";
+                    $error = $GLOBALS['lang']['error_slug_exists'];
                     $page = ['title' => $title, 'slug' => $slug, 'content' => $content, 'status' => $status, 'template_id' => $templateId];
                 } else {
                     if ($isHomepage) {
@@ -430,7 +437,7 @@ class AdminController extends BaseController
                         header('Location: /backoffice/pages?success=created');
                         exit;
                     } else {
-                        $error = "Er is een fout opgetreden: " . $db->error;
+                        $error = $GLOBALS['lang']['error_occurred'] . ": " . $db->error;
                     }
                     $stmt->close();
                 }
@@ -488,12 +495,12 @@ class AdminController extends BaseController
             }
 
             if (empty($title) || empty($slug)) {
-                $error = "Titel en slug zijn verplicht.";
+                $error = $GLOBALS['lang']['error_title_slug_required'];
             } else {
                 // Check if slug already exists (excluding current page)
                 $slugCheck = $db->query("SELECT id FROM {$prefix}pages WHERE slug = '" . $db->real_escape_string($slug) . "' AND id != $id LIMIT 1");
                 if ($slugCheck && $slugCheck->num_rows > 0) {
-                    $error = "Deze slug bestaat al. Kies een unieke slug.";
+                    $error = $GLOBALS['lang']['error_slug_exists'];
                     $page = ['id' => $id, 'title' => $title, 'slug' => $slug, 'content' => $content, 'status' => $status, 'template_id' => $templateId, 'is_homepage' => $isHomepage];
                 } else {
                     if ($isHomepage) {
@@ -505,9 +512,10 @@ class AdminController extends BaseController
                     $stmt->bind_param("ssssiii", $title, $slug, $content, $status, $isHomepage, $templateId, $id);
 
                     if ($stmt->execute()) {
-                        $success = "Pagina succesvol bijgewerkt.";
+                        header('Location: /backoffice/pages?success=updated');
+                        exit;
                     } else {
-                        $error = "Er is een fout opgetreden: " . $db->error;
+                        $error = $GLOBALS['lang']['error_occurred'] . ": " . $db->error;
                     }
                     $stmt->close();
                 }
@@ -952,6 +960,159 @@ class AdminController extends BaseController
             header('Content-Type: application/json');
             echo json_encode(['error' => 'Template not found']);
         }
+        exit;
+    }
+
+    public function templates()
+    {
+        if (!isset($_SESSION['user_id'])) {
+            header('Location: /backoffice/login');
+            exit;
+        }
+
+        $db = Database::connect();
+        $prefix = Database::getPrefix();
+
+        // Fetch only unique templates for the list
+        $res = $db->query("SELECT * FROM {$prefix}templates WHERE id IN (SELECT MIN(id) FROM {$prefix}templates GROUP BY name) ORDER BY FIELD(type, 'homepage', 'content'), name ASC");
+        $templates = [];
+        if ($res) {
+            while ($row = $res->fetch_assoc()) {
+                $templates[] = $row;
+            }
+        }
+
+        $this->view('admin/templates_list', [
+            'templates' => $templates
+        ]);
+    }
+
+    public function addTemplate()
+    {
+        if (!isset($_SESSION['user_id'])) {
+            header('Location: /backoffice/login');
+            exit;
+        }
+
+        $db = Database::connect();
+        $prefix = Database::getPrefix();
+        $error = null;
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $name = $_POST['name'] ?? '';
+            $type = $_POST['type'] ?? 'content';
+
+            if (empty($name)) {
+                $error = "Naam is verplicht.";
+            } else {
+                // Default empty layout
+                $layout = [
+                    'header' => ['sections' => [['type' => 'logo'], ['type' => 'menu']]],
+                    'main' => ['rows' => [['columns' => [['type' => 'text']]]]],
+                    'footer' => ['sections' => [['type' => 'text']]]
+                ];
+                $layoutJson = json_encode($layout);
+
+                $stmt = $db->prepare("INSERT INTO {$prefix}templates (name, type, layout_json, is_active) VALUES (?, ?, ?, 0)");
+                $stmt->bind_param("sss", $name, $type, $layoutJson);
+
+                if ($stmt->execute()) {
+                    $newId = $db->insert_id;
+                    header("Location: /backoffice/templates/edit/$newId?success=1");
+                    exit;
+                } else {
+                    $error = "Er is een fout opgetreden: " . $db->error;
+                }
+                $stmt->close();
+            }
+        }
+
+        $this->view('admin/layout_configurator', [
+            'mode' => 'add',
+            'error' => $error,
+            'pageType' => 'custom'
+        ]);
+    }
+
+    public function templateConfigurator($id)
+    {
+        if (!isset($_SESSION['user_id'])) {
+            header('Location: /backoffice/login');
+            exit;
+        }
+
+        $db = Database::connect();
+        $prefix = Database::getPrefix();
+        $id = (int) $id;
+
+        $res = $db->query("SELECT * FROM {$prefix}templates WHERE id = $id");
+        $template = $res->fetch_assoc();
+
+        if (!$template) {
+            header('Location: /backoffice?error=template_not_found');
+            exit;
+        }
+
+        $this->view('admin/layout_configurator', [
+            'template' => $template,
+            'layoutJson' => $template['layout_json'],
+            'pageType' => $template['type'],
+            'mode' => 'edit'
+        ]);
+    }
+
+    public function saveTemplateConfig($id)
+    {
+        if (!isset($_SESSION['user_id']) || $_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: /backoffice/login');
+            exit;
+        }
+
+        $id = (int) $id;
+        $layoutJson = $_POST['layout_json'] ?? '';
+
+        if (!json_decode($layoutJson)) {
+            header("Location: /backoffice/templates/edit/$id?error=invalid_json");
+            exit;
+        }
+
+        $db = Database::connect();
+        $prefix = Database::getPrefix();
+
+        $stmt = $db->prepare("UPDATE {$prefix}templates SET layout_json = ? WHERE id = ?");
+        $stmt->bind_param("si", $layoutJson, $id);
+
+        if ($stmt->execute()) {
+            header("Location: /backoffice/templates/edit/$id?saved=1");
+        } else {
+            header("Location: /backoffice/templates/edit/$id?error=db_error");
+        }
+        $stmt->close();
+        exit;
+    }
+
+    public function deleteTemplate($id)
+    {
+        if (!isset($_SESSION['user_id'])) {
+            header('Location: /backoffice/login');
+            exit;
+        }
+
+        $db = Database::connect();
+        $prefix = Database::getPrefix();
+        $id = (int) $id;
+
+        // Prevent deleting the primary Homepage template
+        $check = $db->query("SELECT name FROM {$prefix}templates WHERE id = $id");
+        if ($check && $row = $check->fetch_assoc()) {
+            if ($row['name'] === 'Homepage') {
+                header('Location: /backoffice/templates?error=cannot_delete_homepage');
+                exit;
+            }
+        }
+
+        $db->query("DELETE FROM {$prefix}templates WHERE id = $id");
+        header('Location: /backoffice/templates?deleted=1');
         exit;
     }
 }

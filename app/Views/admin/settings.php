@@ -1,3 +1,15 @@
+<?php
+$lang = $GLOBALS['lang'] ?? [];
+extract($lang);
+
+$backoffice_title = $backoffice_title ?? 'Backoffice';
+$settings_title = $settings_title ?? 'Instellingen';
+$nav_dashboard = $nav_dashboard ?? 'Dashboard';
+$role_super_admin = $role_super_admin ?? 'Super Admin';
+$nav_profile = $nav_profile ?? 'Profiel';
+$nav_logout = $nav_logout ?? 'Uitloggen';
+$nav_back_to_dashboard = $nav_back_to_dashboard ?? 'Terug naar Dashboard';
+?>
 <!DOCTYPE html>
 <html lang="<?= $_SESSION['lang'] ?? 'nl' ?>">
 
@@ -9,453 +21,7 @@
     <title><?= $settings_title ?> | Fritsion CMS</title>
     <!-- Google Fonts: Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary-bg: #F1F4F9;
-            --secondary-bg: #FFFFFF;
-            --accent-color: #8B5CF6;
-            --accent-purple: #3B2A8C;
-            --accent-pink: #E8186A;
-            --accent-orange: #F0961B;
-            --accent-gradient: linear-gradient(135deg, #E8186A 0%, #C41257 40%, #F0961B 100%);
-            --text-main: #1A1336;
-            --text-muted: #64748b;
-            --glass-bg: rgba(255, 255, 255, 0.8);
-            --glass-border: rgba(0, 0, 0, 0.05);
-            --sidebar-width: 260px;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--primary-bg);
-            color: var(--text-main);
-            overflow-x: hidden;
-            display: flex;
-        }
-
-        /* Sidebar Styling */
-        .sidebar {
-            width: var(--sidebar-width);
-            height: 100vh;
-            background: #FFFFFF;
-            border-right: 1px solid rgba(0, 0, 0, 0.05);
-            position: fixed;
-            left: 0;
-            top: 0;
-            display: flex;
-            flex-direction: column;
-            z-index: 100;
-        }
-
-        .sidebar-header {
-            padding: 30px 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .sidebar-header img {
-            max-width: 130px;
-            height: auto;
-        }
-
-        .sidebar-nav {
-            flex: 1;
-            padding: 20px 15px;
-        }
-
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 15px;
-            color: #475569;
-            text-decoration: none;
-            border-radius: 10px;
-            margin-bottom: 8px;
-            transition: all 0.3s ease;
-            font-weight: 500;
-        }
-
-        .nav-item:hover,
-        .nav-item.active {
-            background: rgba(232, 24, 106, 0.05);
-            color: var(--accent-pink);
-        }
-
-        .nav-item.active {
-            position: relative;
-            background: rgba(232, 24, 106, 0.1) !important;
-        }
-
-        .nav-item.active::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 3px;
-            background: var(--accent-orange);
-            border-radius: 3px 3px 0 0;
-            z-index: 5;
-        }
-
-        .sidebar-footer {
-            padding: 20px;
-            border-top: 1px solid rgba(0, 0, 0, 0.05);
-            text-align: center;
-        }
-
-        .sidebar-footer p {
-            font-size: 0.8rem;
-            color: #64748b;
-            font-weight: 500;
-        }
-
-        .main-wrapper {
-            flex: 1;
-            margin-left: var(--sidebar-width);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .topbar {
-            height: 70px;
-            padding: 0 40px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: var(--glass-bg);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid var(--glass-border);
-            position: sticky;
-            top: 0;
-            z-index: 90;
-        }
-
-        .content {
-            padding: 40px;
-            max-width: 1000px;
-            margin: 0 auto;
-            width: 100%;
-        }
-
-        .settings-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
-            gap: 30px;
-        }
-
-        .settings-card {
-            background: var(--secondary-bg);
-            border-radius: 20px;
-            border: 1px solid var(--glass-border);
-            padding: 30px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
-        }
-
-        .settings-card h3 {
-            font-size: 1.25rem;
-            font-weight: 700;
-            margin-bottom: 25px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            color: var(--accent-pink);
-        }
-
-        .setting-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 15px 0;
-            border-bottom: 1px solid var(--glass-border);
-        }
-
-        .setting-row:last-child {
-            border-bottom: none;
-        }
-
-        .setting-label {
-            color: var(--text-muted);
-            font-size: 0.95rem;
-            font-weight: 500;
-        }
-
-        .setting-value {
-            color: var(--text-main);
-            font-weight: 600;
-            text-align: right;
-            flex: 1;
-            margin-left: 20px;
-        }
-
-        .setting-input {
-            width: 100%;
-            padding: 8px 12px;
-            background: #F8FAFC;
-            border: 1px solid var(--glass-border);
-            border-radius: 8px;
-            color: var(--text-main);
-            font-size: 0.95rem;
-            text-align: right;
-            transition: all 0.3s;
-        }
-
-        .setting-input:focus {
-            outline: none;
-            border-color: var(--accent-color);
-            background: rgba(255, 255, 255, 0.08);
-        }
-
-        .badge {
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 0.8rem;
-            font-weight: 700;
-            text-transform: uppercase;
-        }
-
-        .badge-info {
-            background: rgba(232, 24, 106, 0.1);
-            color: var(--accent-pink);
-        }
-
-        .badge-success {
-            background: rgba(240, 150, 27, 0.15);
-            color: var(--accent-orange);
-        }
-
-        .header-section {
-            margin-bottom: 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-        }
-
-        .header-section h1 {
-            font-size: 2rem;
-            font-weight: 800;
-            margin-bottom: 10px;
-        }
-
-        .header-section p {
-            color: var(--text-muted);
-            font-size: 1.1rem;
-        }
-
-        .btn-save {
-            padding: 12px 25px;
-            background: var(--accent-gradient);
-            border: none;
-            border-radius: 10px;
-            color: white;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(232, 24, 106, 0.3);
-        }
-
-        .btn-save:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(232, 24, 106, 0.45);
-        }
-
-        .btn-secondary {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 12px 24px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--glass-border);
-            border-radius: 12px;
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            font-weight: 600;
-            text-decoration: none;
-            transition: all 0.3s;
-            cursor: pointer;
-        }
-
-        .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--text-main);
-            border-color: var(--text-muted);
-        }
-
-        /* User Menu Dropdown */
-        .user-menu {
-            position: absolute;
-            top: calc(100% + 10px);
-            right: 0;
-            width: 200px;
-            background: var(--secondary-bg);
-            border: 1px solid var(--glass-border);
-            border-radius: 12px;
-            padding: 10px;
-            display: none;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-            z-index: 110;
-        }
-
-        .user-menu.active {
-            display: block;
-            animation: slideUp 0.3s ease;
-        }
-
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .menu-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 12px 15px;
-            color: var(--text-muted);
-            text-decoration: none;
-            border-radius: 8px;
-            transition: all 0.2s;
-            font-size: 0.9rem;
-            position: relative;
-        }
-
-        .menu-item:hover {
-            background: rgba(255, 255, 255, 0.05);
-            color: var(--text-main);
-        }
-
-        .menu-item.active {
-            color: var(--text-main);
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 8px 8px 0 0;
-        }
-
-        .menu-item.active::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 3px;
-            background: var(--accent-orange);
-            border-radius: 3px 3px 0 0;
-        }
-
-        .menu-item.logout {
-            color: #ef4444;
-        }
-
-        .menu-item.logout:hover {
-            background: rgba(239, 68, 68, 0.1);
-        }
-
-        .alert {
-            padding: 15px 20px;
-            border-radius: 12px;
-            margin-bottom: 30px;
-            font-size: 0.95rem;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .alert-error {
-            background: rgba(239, 68, 68, 0.1);
-            color: #ef4444;
-            border: 1px solid rgba(239, 68, 68, 0.2);
-        }
-
-        .alert-success {
-            background: rgba(16, 185, 129, 0.1);
-            color: #10b981;
-            border: 1px solid rgba(16, 185, 129, 0.2);
-        }
-
-        /* Language Switcher Styling */
-        .topbar-actions {
-            display: flex;
-            align-items: center;
-            gap: 25px;
-        }
-
-        .lang-select {
-            display: flex;
-            position: relative;
-            align-items: center;
-            gap: 10px;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 5px;
-            border-radius: 10px;
-            border: 1px solid var(--glass-border);
-            height: 38px;
-            overflow: hidden;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            width: fit-content;
-        }
-
-        .lang-select a {
-            display: none;
-            line-height: 0;
-            transition: all 0.3s ease;
-        }
-
-        .lang-select a.active {
-            display: block;
-        }
-
-        .lang-select.expanded {
-            height: 80px;
-            flex-direction: column;
-            gap: 8px;
-            padding: 8px 5px;
-            overflow: visible;
-        }
-
-        .lang-select.expanded a {
-            display: block;
-        }
-
-        .flag-icon {
-            width: 24px;
-            height: 16px;
-            object-fit: cover;
-            border-radius: 2px;
-        }
-
-        .lang-select.expanded a {
-            display: block;
-        }
-
-        .flag-icon {
-            width: 32px;
-            height: 22px;
-            border-radius: 3px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-
-        .flag-icon:hover {
-            transform: scale(1.1);
-        }
-    </style>
+    <link rel="stylesheet" href="/assets/css/admin_shared.css">
 </head>
 
 <body>
@@ -470,10 +36,8 @@
                 <a href="/backoffice"
                     style="color: var(--text-muted); text-decoration: none; font-size: 0.9rem;"><?= $nav_back_to_dashboard ?></a>
 
-                <div class="user-widget" id="user-widget"
-                    style="position: relative; display: flex; align-items: center; gap: 12px; cursor: pointer;">
-                    <div class="user-avatar"
-                        style="width: 32px; height: 32px; background: var(--accent-gradient); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.85rem; color: white;">
+                <div class="user-widget" id="user-widget">
+                    <div class="user-avatar">
                         <?php
                         $name = $_SESSION['username'] ?? 'Admin';
                         echo strtoupper(substr($name, 0, 1) . (strlen($name) > 1 ? substr($name, 1, 1) : ''));
@@ -550,13 +114,22 @@
                                     value="<?= htmlspecialchars($settings['site_domain'] ?? '') ?>" required>
                             </span>
                         </div>
+                        <div class="setting-row">
+                            <span class="setting-label"><?= $label_default_lang ?></span>
+                            <span class="setting-value">
+                                <select name="default_lang" class="setting-input">
+                                    <option value="nl" <?= ($env['language'] ?? 'nl') === 'nl' ? 'selected' : '' ?>>Nederlands</option>
+                                    <option value="en" <?= ($env['language'] ?? 'nl') === 'en' ? 'selected' : '' ?>>English</option>
+                                </select>
+                            </span>
+                        </div>
                     </div>
 
                     <!-- Branding Section -->
                     <div class="settings-card">
                         <h3><span>✨</span> Branding</h3>
                         <div class="setting-row" style="flex-direction: column; align-items: flex-start; gap: 15px;">
-                            <span class="setting-label">Website Logo</span>
+                            <span class="setting-label"><?= $label_website_logo ?></span>
                             <div class="logo-preview-container"
                                 style="display: flex; align-items: center; gap: 20px; width: 100%;">
                                 <div id="branding-logo-preview"
@@ -572,19 +145,17 @@
                                 <div style="flex: 1;">
                                     <button type="button" class="btn-secondary"
                                         style="width: 100%; margin-bottom: 10px;"
-                                        onclick="document.getElementById('branding_logo_file').click()">Logo
-                                        Uploaden</button>
+                                        onclick="document.getElementById('branding_logo_file').click()"><?= $btn_upload_logo ?></button>
                                     <input type="file" id="branding_logo_file" style="display: none;" accept="image/*"
                                         onchange="uploadBrandingLogo(this)">
                                     <input type="hidden" name="site_logo" id="site_logo_path"
                                         value="<?= htmlspecialchars($settings['site_logo'] ?? '') ?>">
-                                    <p style="font-size: 0.75rem; color: var(--text-muted);">Aanbevolen: PNG of SVG met
-                                        transparante achtergrond.</p>
+                                    <p style="font-size: 0.75rem; color: var(--text-muted);"><?= $tip_logo_upload ?></p>
                                 </div>
                             </div>
                         </div>
                         <div class="setting-row" style="align-items: center;">
-                            <span class="setting-label">Geen logo tonen op website</span>
+                            <span class="setting-label"><?= $label_hide_logo ?></span>
                             <span class="setting-value">
                                 <label class="switch"
                                     style="position: relative; display: inline-block; width: 50px; height: 24px;">
@@ -594,27 +165,6 @@
                                 </label>
                             </span>
                         </div>
-                        <style>
-                            input:checked+.slider {
-                                background-color: var(--accent-pink) !important;
-                            }
-
-                            .slider:before {
-                                position: absolute;
-                                content: "";
-                                height: 18px;
-                                width: 18px;
-                                left: 3px;
-                                bottom: 3px;
-                                background-color: white;
-                                transition: .4s;
-                                border-radius: 50%;
-                            }
-
-                            input:checked+.slider:before {
-                                transform: translateX(26px);
-                            }
-                        </style>
                     </div>
 
                     <!-- Database & System -->
@@ -641,8 +191,8 @@
                             <span class="setting-label"><?= $label_db_pass ?></span>
                             <span class="setting-value">
                                 <input type="password" name="db_pass" class="setting-input"
-                                    value="<?= htmlspecialchars(\Fritsion\Config::get('DB_PASSWORD') ?? '') ?>"
-                                    required>
+                                    value=""
+                                    placeholder="<?= $label_db_pass_placeholder ?>">
                             </span>
                         </div>
                         <div class="setting-row">
@@ -735,6 +285,7 @@
                 preview.innerHTML = '<span style="font-size: 2rem;">🖼️</span>';
             }
         }
+
     </script>
 </body>
 

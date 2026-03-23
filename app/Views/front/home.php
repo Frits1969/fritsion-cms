@@ -19,22 +19,23 @@ function getDeepValue($obj, $path)
 
 function renderBlock($type, $path, $pageData, $settings)
 {
+    global $lang;
     $data = getDeepValue($pageData, $path) ?: [];
 
     switch ($type) {
         case 'text':
             $title = $data['title'] ?? '';
             $text = $data['text'] ?? '';
-            return "<div>" . ($title ? "<h1>" . htmlspecialchars($title) . "</h1>" : "") . "<p>" . nl2br(htmlspecialchars($text)) . "</p></div>";
+            return "<div>" . ($title ? "<h1>" . htmlspecialchars($title) . "</h1>" : "") . "<div>" . $text . "</div></div>";
 
         case 'image':
             $url = $data['url'] ?? '';
             $alt = $data['alt'] ?? '';
-            return $url ? '<img src="' . htmlspecialchars($url) . '" alt="' . htmlspecialchars($alt) . '">' : '<div class="placeholder-image">Afbeelding niet geüpload</div>';
+            return $url ? '<img src="' . htmlspecialchars($url) . '" alt="' . htmlspecialchars($alt) . '">' : '<div class="placeholder-image">' . ($lang['msg_image_not_uploaded'] ?? 'Afbeelding niet geüpload') . '</div>';
 
         case 'cta':
-            $title = $data['title'] ?? 'Klaar om te starten?';
-            $btnText = $data['button_text'] ?? 'Registeer nu';
+            $title = $data['title'] ?? ($lang['msg_cta_title'] ?? 'Klaar om te starten?');
+            $btnText = $data['button_text'] ?? ($lang['btn_register'] ?? 'Registeer nu');
             $url = $data['url'] ?? '#';
             return '<div><h3>' . htmlspecialchars($title) . '</h3><a href="' . htmlspecialchars($url) . '" class="type-cta">' . htmlspecialchars($btnText) . '</a></div>';
 
@@ -56,7 +57,7 @@ function renderBlock($type, $path, $pageData, $settings)
             return $html . '</nav>';
 
         case 'usps':
-            $usps = [$data['usp_1'] ?? 'Snelheid', $data['usp_2'] ?? 'Veiligheid', $data['usp_3'] ?? 'Kwaliteit'];
+            $usps = [$data['usp_1'] ?? ($lang['usp_1_default'] ?? 'Snelheid'), $data['usp_2'] ?? ($lang['usp_2_default'] ?? 'Veiligheid'), $data['usp_3'] ?? ($lang['usp_3_default'] ?? 'Kwaliteit')];
             $html = '<div class="type-usp-grid">';
             foreach ($usps as $usp) {
                 $html .= '<div class="usp-card">' . htmlspecialchars($usp) . '</div>';
@@ -85,12 +86,12 @@ function renderBlock($type, $path, $pageData, $settings)
             return '<div style="background:#e0f2fe; height:300px; display:flex; align-items:center; justify-content:center; border-radius:24px; color:#0369a1; font-weight:600;">📍 Kaart: ' . htmlspecialchars($addr) . '</div>';
 
         default:
-            return "Block: $type";
+            return ($lang['label_block'] ?? "Block") . ": $type";
     }
 }
 ?>
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="<?= $_SESSION['lang'] ?? 'nl' ?>">
 
 <head>
     <meta charset="UTF-8">
@@ -195,10 +196,21 @@ function renderBlock($type, $path, $pageData, $settings)
         }
 
         .col img {
-            width: 100%;
+            max-width: 100%;
+            height: auto;
             border-radius: 24px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
             display: block;
+        }
+
+        .col img:not(.logo) {
+            width: 100%;
+        }
+
+        .logo {
+            height: 40px;
+            width: auto;
+            object-fit: contain;
         }
 
         .placeholder-image {
@@ -318,8 +330,8 @@ function renderBlock($type, $path, $pageData, $settings)
         </footer>
     <?php else: ?>
         <div class="container" style="padding: 100px; text-align: center;">
-            <h1>Geen layout geconfigureerd.</h1>
-            <p>Ga naar de backoffice om uw homepage in te richten.</p>
+            <h1><?= $lang['error_no_layout'] ?? 'Geen layout geconfigureerd.' ?></h1>
+            <p><?= $lang['msg_go_to_backoffice'] ?? 'Ga naar de backoffice om uw homepage in te richten.' ?></p>
         </div>
     <?php endif; ?>
 

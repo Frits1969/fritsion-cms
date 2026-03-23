@@ -20,656 +20,12 @@ $nav_back_to_dashboard = $lang['nav_back_to_dashboard'] ?? 'Terug naar Dashboard
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= $pageType === 'content' ? 'Contentpagina Layout' : 'Homepage Layout' ?> | Fritsion CMS</title>
+    <title><?= $pageType === 'content' ? ($lang['option_content_page'] ?? 'Contentpagina') . ' Layout' : ($lang['badge_homepage'] ?? 'Homepage') . ' Layout' ?> | Fritsion CMS</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
     <link rel="icon" type="image/png" href="/assets/logo/logo_fritsion_cms_favicon.png">
     <link rel="shortcut icon" href="/assets/logo/logo_fritsion_cms_favicon.ico">
-    <style>
-        :root {
-            --primary-bg: #F1F4F9;
-            --secondary-bg: #FFFFFF;
-            --accent-pink: #E8186A;
-            --accent-orange: #F0961B;
-            --accent-gradient: linear-gradient(135deg, #E8186A 0%, #C41257 40%, #F0961B 100%);
-            --text-main: #1A1336;
-            --text-muted: #64748b;
-            --glass-bg: rgba(255, 255, 255, 0.8);
-            --glass-border: rgba(0, 0, 0, 0.05);
-            --sidebar-width: 260px;
-            --preview-bg: #cbd5e1;
-            --highlight-color: rgba(232, 24, 106, 0.2);
-            --highlight-border: #E8186A;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background: var(--primary-bg);
-            color: var(--text-main);
-            display: flex;
-            overflow: hidden;
-        }
-
-        /* Sidebar Styling (Identical to Dashboard) */
-        .sidebar {
-            width: var(--sidebar-width);
-            height: 100vh;
-            background: #FFFFFF;
-            border-right: 1px solid var(--glass-border);
-            position: fixed;
-            left: 0;
-            top: 0;
-            display: flex;
-            flex-direction: column;
-            z-index: 100;
-        }
-
-        .sidebar-header {
-            padding: 30px 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .sidebar-header img {
-            max-width: 130px;
-            height: auto;
-        }
-
-        .sidebar-nav {
-            flex: 1;
-            padding: 20px 15px;
-        }
-
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 15px;
-            color: #475569;
-            text-decoration: none;
-            border-radius: 10px;
-            margin-bottom: 8px;
-            transition: all 0.3s ease;
-            font-weight: 500;
-        }
-
-        .nav-item:hover,
-        .nav-item.active {
-            background: rgba(232, 24, 106, 0.05);
-            color: var(--accent-pink);
-        }
-
-        .nav-item.active {
-            position: relative;
-            background: rgba(232, 24, 106, 0.1) !important;
-        }
-
-        .nav-item.active::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 3px;
-            background: var(--accent-orange);
-            border-radius: 3px 3px 0 0;
-            z-index: 5;
-        }
-
-        .sidebar-footer {
-            padding: 20px;
-            border-top: 1px solid var(--glass-border);
-            text-align: center;
-        }
-
-        .sidebar-footer p {
-            font-size: 0.8rem;
-            color: #64748b;
-            font-weight: 500;
-        }
-
-        .main-wrapper {
-            flex: 1;
-            margin-left: var(--sidebar-width);
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* Topbar Styling */
-        .topbar {
-            height: 70px;
-            padding: 0 40px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: var(--glass-bg);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid var(--glass-border);
-            z-index: 90;
-            flex-shrink: 0;
-        }
-
-        .topbar-actions {
-            display: flex;
-            align-items: center;
-            gap: 25px;
-        }
-
-        /* User Widget */
-        .user-widget {
-            position: relative;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            cursor: pointer;
-            padding: 5px 10px;
-            border-radius: 50px;
-            transition: background 0.3s;
-        }
-
-        .user-widget:hover {
-            background: rgba(232, 24, 106, 0.05);
-        }
-
-        .user-avatar {
-            width: 32px;
-            height: 32px;
-            background: var(--accent-gradient);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            font-size: 0.85rem;
-            color: white;
-        }
-
-        .user-info {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .user-name {
-            font-size: 0.9rem;
-            font-weight: 600;
-        }
-
-        .user-role {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-        }
-
-        .user-menu {
-            position: absolute;
-            top: calc(100% + 10px);
-            right: 0;
-            width: 200px;
-            background: var(--secondary-bg);
-            border: 1px solid var(--glass-border);
-            border-radius: 12px;
-            padding: 10px;
-            display: none;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-            z-index: 110;
-        }
-
-        .user-menu.active {
-            display: block;
-            animation: slideUp 0.3s ease;
-        }
-
-        .menu-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 12px 15px;
-            color: var(--text-muted);
-            text-decoration: none;
-            border-radius: 8px;
-            transition: all 0.2s;
-            font-size: 0.9rem;
-        }
-
-        .menu-item:hover {
-            background: rgba(232, 24, 106, 0.05);
-            color: var(--text-main);
-        }
-
-        .menu-item.logout {
-            color: #ef4444;
-        }
-
-        /* Language Switcher */
-        .lang-select {
-            display: flex;
-            position: relative;
-            align-items: center;
-            gap: 10px;
-            background: #f8fafc;
-            padding: 5px;
-            border-radius: 10px;
-            border: 1px solid var(--glass-border);
-            height: 38px;
-            overflow: hidden;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            width: fit-content;
-        }
-
-        .lang-select a {
-            display: none;
-            line-height: 0;
-        }
-
-        .lang-select a.active {
-            display: block;
-        }
-
-        .lang-select.expanded {
-            height: 80px;
-            flex-direction: column;
-            gap: 8px;
-            padding: 8px 5px;
-            overflow: visible;
-        }
-
-        .lang-select.expanded a {
-            display: block;
-        }
-
-        .flag-icon {
-            width: 32px;
-            height: 22px;
-            border-radius: 3px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @media (max-width: 1024px) {
-            .sidebar {
-                width: 80px;
-            }
-
-            .sidebar-header img {
-                max-width: 40px;
-            }
-
-            .nav-item span,
-            .user-info {
-                display: none;
-            }
-
-            .main-wrapper {
-                margin-left: 80px;
-            }
-
-            .sidebar-header,
-            .nav-item {
-                justify-content: center;
-            }
-        }
-
-        .config-container {
-            flex: 1;
-            display: grid;
-            grid-template-columns: 450px 1fr;
-            overflow: hidden;
-        }
-
-        /* Left: Config Panel */
-        .config-panel {
-            padding: 30px;
-            overflow-y: auto;
-            background: #fff;
-            border-right: 1px solid var(--glass-border);
-            scroll-behavior: smooth;
-        }
-
-        .config-section {
-            margin-bottom: 40px;
-            border-radius: 16px;
-            transition: all 0.3s;
-        }
-
-        .config-section.highlighted {
-            background: rgba(232, 24, 106, 0.03);
-            box-shadow: 0 0 0 10px rgba(232, 24, 106, 0.03);
-        }
-
-        .config-section h2 {
-            font-size: 1.25rem;
-            margin-bottom: 20px;
-            color: var(--accent-pink);
-            border-bottom: 2px solid #f1f5f9;
-            padding-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-            padding: 10px;
-            border-radius: 12px;
-            transition: all 0.3s;
-        }
-
-        .form-group.highlighted {
-            background: var(--highlight-color);
-            border: 1px solid var(--highlight-border);
-        }
-
-        .form-label {
-            display: block;
-            font-size: 0.85rem;
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: #475569;
-        }
-
-        .form-select,
-        .form-input {
-            width: 100%;
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
-            font-family: inherit;
-            font-size: 0.9rem;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-
-        .form-select:focus,
-        .form-input:focus {
-            border-color: var(--accent-pink);
-        }
-
-        .row-item {
-            background: #f8fafc;
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 15px;
-            border: 1px solid #e2e8f0;
-            position: relative;
-            transition: all 0.3s;
-        }
-
-        .row-item.highlighted {
-            background: var(--highlight-color);
-            border: 1px solid var(--highlight-border);
-        }
-
-        .col-item {
-            background: #fff;
-            padding: 10px;
-            border-radius: 8px;
-            margin-top: 10px;
-            border: 1px dashed #cbd5e1;
-            transition: all 0.3s;
-        }
-
-        .col-item.highlighted {
-            background: rgba(232, 24, 106, 0.1);
-            border-style: solid;
-            border-color: var(--accent-pink);
-        }
-
-        .btn-add {
-            background: #f1f5f9;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 6px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            cursor: pointer;
-            color: #475569;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            margin-top: 10px;
-            transition: all 0.2s;
-        }
-
-        .btn-add:hover {
-            background: #e2e8f0;
-            color: var(--text-main);
-        }
-
-        .btn-remove {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: none;
-            border: none;
-            color: #ef4444;
-            cursor: pointer;
-            font-size: 1rem;
-            opacity: 0.5;
-            transition: opacity 0.2s;
-        }
-
-        .btn-remove:hover {
-            opacity: 1;
-        }
-
-        .row-actions {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            display: flex;
-            gap: 5px;
-            align-items: center;
-        }
-
-        .btn-action {
-            background: #fff;
-            border: 1px solid #e2e8f0;
-            width: 28px;
-            height: 28px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            color: #64748b;
-            transition: all 0.2s;
-        }
-
-        .btn-action:hover:not(:disabled) {
-            background: #f1f5f9;
-            color: var(--text-main);
-            border-color: #cbd5e1;
-        }
-
-        .btn-action:disabled {
-            opacity: 0.3;
-            cursor: not-allowed;
-        }
-
-        .btn-action.remove {
-            color: #ef4444;
-            border-color: #fca5a5;
-        }
-
-        .btn-action.remove:hover {
-            background: #fee2e2;
-        }
-
-        /* Right: Live Preview */
-        .preview-panel {
-            padding: 40px 40px 100px 40px;
-            background: #f1f5f9;
-            display: flex;
-            align-items: flex-start;
-            justify-content: center;
-            overflow-y: auto;
-        }
-
-        .preview-canvas {
-            background: #fff;
-            width: 100%;
-            max-width: 900px;
-            min-height: 400px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
-            border-radius: 4px;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            position: relative;
-            transition: all 0.3s;
-        }
-
-        .pv-header {
-            padding: 15px;
-            border-bottom: 1px solid #eee;
-            display: grid;
-            gap: 10px;
-            background: #f8fafc;
-            min-height: 80px;
-            align-items: center;
-        }
-
-        .pv-main {
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .pv-footer {
-            padding: 20px;
-            border-top: 1px solid #eee;
-            display: grid;
-            gap: 10px;
-            background: #f8fafc;
-            min-height: 100px;
-            margin-top: auto;
-        }
-
-        .pv-row {
-            display: grid;
-            gap: 10px;
-            min-height: 100px;
-        }
-
-        .pv-col {
-            border: 2px dashed #cbd5e1;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 10px;
-            min-height: 80px;
-            flex-direction: column;
-            gap: 5px;
-            color: #94a3b8;
-            background: #fff;
-            cursor: pointer;
-            transition: all 0.2s;
-            position: relative;
-        }
-
-        .pv-col:hover {
-            border-color: var(--accent-pink);
-            background: rgba(232, 24, 106, 0.05);
-            transform: scale(1.02);
-            z-index: 10;
-        }
-
-        .pv-col.highlighted {
-            border-color: var(--accent-pink);
-            background: rgba(232, 24, 106, 0.05);
-            border-style: solid;
-            box-shadow: 0 0 15px rgba(232, 24, 106, 0.2);
-            z-index: 11;
-        }
-
-        .pv-col.pv-compact {
-            min-height: 60px;
-            padding: 5px;
-        }
-
-        .pv-col-type {
-            font-size: 0.65rem;
-            font-weight: 800;
-            color: #475569;
-        }
-
-        .pv-col-icon {
-            font-size: 1.5rem;
-        }
-
-        .pv-compact .pv-col-icon {
-            font-size: 1.1rem;
-        }
-
-        .pv-compact .pv-col-type {
-            font-size: 0.55rem;
-        }
-
-        .save-bar {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            z-index: 100;
-        }
-
-        .btn-save {
-            background: var(--accent-gradient);
-            color: white;
-            border: none;
-            padding: 15px 40px;
-            border-radius: 12px;
-            font-weight: 700;
-            cursor: pointer;
-            box-shadow: 0 10px 20px rgba(232, 24, 106, 0.3);
-            transition: all 0.3s;
-        }
-
-        .btn-save:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 30px rgba(232, 24, 106, 0.4);
-        }
-
-        .alert-toast {
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #10b981;
-            color: white;
-            padding: 12px 30px;
-            border-radius: 100px;
-            font-weight: 600;
-            display: none;
-            z-index: 200;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-        }
-    </style>
+    <link rel="stylesheet" href="/assets/css/admin_shared.css">
 </head>
 
 <body>
@@ -678,7 +34,7 @@ $nav_back_to_dashboard = $lang['nav_back_to_dashboard'] ?? 'Terug naar Dashboard
     <div class="main-wrapper">
         <header class="topbar">
             <div style="font-weight: 600; color: var(--text-muted);">
-                <?= $nav_templates ?> / <?= $pageType === 'content' ? 'Contentpagina' : 'Homepage' ?>
+                <?= $nav_templates ?> / <?= $pageType === 'content' ? ($lang['option_content_page'] ?? 'Contentpagina') : ($lang['badge_homepage'] ?? 'Homepage') ?>
             </div>
 
             <div class="topbar-actions">
@@ -721,9 +77,9 @@ $nav_back_to_dashboard = $lang['nav_back_to_dashboard'] ?? 'Terug naar Dashboard
             <!-- Form Side -->
             <div class="config-panel" id="configPanel">
                 <div class="config-section" id="section-header">
-                    <h2><span>🎨</span> Header</h2>
+                    <h2><span>🎨</span> <?= $lang['title_header'] ?? 'Header' ?></h2>
                     <div class="form-group">
-                        <label class="form-label">Aantal vlakken</label>
+                        <label class="form-label"><?= $lang['label_amount_sections'] ?? 'Aantal vlakken' ?></label>
                         <input type="number" class="form-input" id="headerCount" min="1" max="5"
                             onchange="updateHeaderCount(this.value)">
                     </div>
@@ -731,15 +87,15 @@ $nav_back_to_dashboard = $lang['nav_back_to_dashboard'] ?? 'Terug naar Dashboard
                 </div>
 
                 <div class="config-section" id="section-main">
-                    <h2><span>📄</span> Middenstuk</h2>
+                    <h2><span>📄</span> <?= $lang['title_main_section'] ?? 'Middenstuk' ?></h2>
                     <div id="mainRows"></div>
-                    <button class="btn-add" onclick="addRow()"><span>➕</span> Rij toevoegen</button>
+                    <button class="btn-add" onclick="addRow()"><span>➕</span> <?= $lang['btn_add_row'] ?? 'Rij toevoegen' ?></button>
                 </div>
 
                 <div class="config-section" id="section-footer">
-                    <h2><span>🏁</span> Footer</h2>
+                    <h2><span>🏁</span> <?= $lang['title_footer'] ?? 'Footer' ?></h2>
                     <div class="form-group">
-                        <label class="form-label">Aantal vlakken</label>
+                        <label class="form-label"><?= $lang['label_amount_sections'] ?? 'Aantal vlakken' ?></label>
                         <input type="number" class="form-input" id="footerCount" min="1" max="5"
                             onchange="updateFooterCount(this.value)">
                     </div>
@@ -757,35 +113,51 @@ $nav_back_to_dashboard = $lang['nav_back_to_dashboard'] ?? 'Terug naar Dashboard
             </div>
         </div>
 
-        <form action="/backoffice/templates/<?= $pageType === 'content' ? 'content' : 'homepage' ?>/save" method="POST"
-            id="layoutForm">
+        <?php 
+            $formAction = "/backoffice/templates/" . ($pageType === 'content' ? 'content' : 'homepage') . "/save";
+            if (isset($template['id'])) {
+                $formAction = "/backoffice/templates/edit/" . $template['id'] . "/save";
+            }
+        ?>
+        <form action="<?= $formAction ?>" method="POST" id="layoutForm">
             <input type="hidden" name="layout_json" id="layoutJsonInput">
             <div class="save-bar">
-                <button type="button" class="btn-save" onclick="saveLayout()">Configuratie Opslaan</button>
+                <button type="button" class="btn-save" onclick="saveLayout()"><?= $lang['btn_save_config'] ?? 'Configuratie Opslaan' ?></button>
             </div>
         </form>
     </div>
 
-    <div class="alert-toast" id="saveToast">Layout succesvol opgeslagen!</div>
+    <div class="alert-toast" id="saveToast"><?= $lang['msg_layout_saved'] ?? 'Layout succesvol opgeslagen!' ?></div>
 
     <script>
         let state = <?= $layoutJson ?>;
 
         const contentTypes = [
-            { id: 'text', name: 'Tekst', icon: '📝' },
-            { id: 'image', name: 'Afbeelding', icon: '🖼️' },
-            { id: 'video', name: 'Video', icon: '🎬' },
-            { id: 'form', name: 'Formulier', icon: '📩' },
-            { id: 'cta', name: 'Call to Action', icon: '🎯' },
-            { id: 'usps', name: 'USP\'s', icon: '🚀' },
-            { id: 'blog', name: 'Blogoverzicht', icon: '✍️' },
-            { id: 'products', name: 'Productoverzicht', icon: '🛍️' },
-            { id: 'map', name: 'Kaart', icon: '📍' },
-            { id: 'html', name: 'Custom HTML', icon: '💻' },
-            { id: 'logo', name: 'Logo', icon: '✨' },
-            { id: 'menu', name: 'Menu', icon: '☰' },
-            { id: 'socials', name: 'Social Icons', icon: '📱' }
+            { id: 'text', name: '<?= $lang['type_text'] ?? 'Tekst' ?>', icon: '📝' },
+            { id: 'image', name: '<?= $lang['type_image'] ?? 'Afbeelding' ?>', icon: '🖼️' },
+            { id: 'video', name: '<?= $lang['type_video'] ?? 'Video' ?>', icon: '🎬' },
+            { id: 'form', name: '<?= $lang['type_form'] ?? 'Formulier' ?>', icon: '📩' },
+            { id: 'cta', name: '<?= $lang['type_cta'] ?? 'Call to Action' ?>', icon: '🎯' },
+            { id: 'usps', name: '<?= $lang['type_usps'] ?? "USP's" ?>', icon: '🚀' },
+            { id: 'blog', name: '<?= $lang['type_blog'] ?? 'Blogoverzicht' ?>', icon: '✍️' },
+            { id: 'products', name: '<?= $lang['type_products'] ?? 'Productoverzicht' ?>', icon: '🛍️' },
+            { id: 'map', name: '<?= $lang['type_map'] ?? 'Kaart' ?>', icon: '📍' },
+            { id: 'html', name: '<?= $lang['type_html'] ?? 'Custom HTML' ?>', icon: '💻' },
+            { id: 'logo', name: '<?= $lang['type_logo'] ?? 'Logo' ?>', icon: '✨' },
+            { id: 'menu', name: '<?= $lang['type_menu'] ?? 'Menu' ?>', icon: '☰' },
+            { id: 'socials', name: '<?= $lang['type_socials'] ?? 'Social Icons' ?>', icon: '📱' }
         ];
+
+        const labels = {
+            vlakContent: '<?= $lang['label_vlak_content'] ?? 'Vlak %d content' ?>',
+            moveUp: '<?= $lang['title_move_up'] ?? 'Omhoog' ?>',
+            moveDown: '<?= $lang['title_move_down'] ?? 'Omlaag' ?>',
+            remove: '<?= $lang['title_remove'] ?? 'Verwijderen' ?>',
+            rowColumns: '<?= $lang['label_row_columns'] ?? 'Rij %d kolommen' ?>',
+            columnType: '<?= $lang['label_column_type'] ?? 'Kolom %d type' ?>',
+            column: '<?= $lang['label_column'] ?? 'Kolom' ?>',
+            columns: '<?= $lang['label_columns'] ?? 'Kolommen' ?>'
+        };
 
         function init() {
             document.getElementById('headerCount').value = state.header.sections.length;
@@ -890,7 +262,7 @@ $nav_back_to_dashboard = $lang['nav_back_to_dashboard'] ?? 'Terug naar Dashboard
             let hHtml = '';
             state.header.sections.forEach((sec, i) => {
                 hHtml += `<div class="form-group">
-                    <label class="form-label">Vlak ${i + 1} content</label>
+                    <label class="form-label">${labels.vlakContent.replace('%d', i + 1)}</label>
                     <select class="form-select" id="config-header-${i}" onchange="updateSectionType('header', ${i}, this.value)">
                         ${renderOptions(sec.type)}
                     </select>
@@ -906,20 +278,20 @@ $nav_back_to_dashboard = $lang['nav_back_to_dashboard'] ?? 'Terug naar Dashboard
 
                 mHtml += `<div class="row-item" id="config-row-${ri}">
                     <div class="row-actions">
-                        <button class="btn-action" title="Omhoog" onclick="moveRow(${ri}, -1)" ${isFirst ? 'disabled' : ''}>↑</button>
-                        <button class="btn-action" title="Omlaag" onclick="moveRow(${ri}, 1)" ${isLast ? 'disabled' : ''}>↓</button>
-                        <button class="btn-action remove" title="Verwijderen" onclick="removeRow(${ri})">✖</button>
+                        <button class="btn-action" title="${labels.moveUp}" onclick="moveRow(${ri}, -1)" ${isFirst ? 'disabled' : ''}>↑</button>
+                        <button class="btn-action" title="${labels.moveDown}" onclick="moveRow(${ri}, 1)" ${isLast ? 'disabled' : ''}>↓</button>
+                        <button class="btn-action remove" title="${labels.remove}" onclick="removeRow(${ri})">✖</button>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Rij ${ri + 1} kolommen</label>
+                        <label class="form-label">${labels.rowColumns.replace('%d', ri + 1)}</label>
                         <select class="form-select" onchange="updateColCount(${ri}, this.value)">
-                            ${[1, 2, 3, 4].map(n => `<option value="${n}" ${row.columns.length == n ? 'selected' : ''}>${n} Kolom${n > 1 ? 'men' : ''}</option>`).join('')}
+                            ${[1, 2, 3, 4].map(n => `<option value="${n}" ${row.columns.length == n ? 'selected' : ''}>${n} ${n > 1 ? labels.columns : labels.column}</option>`).join('')}
                         </select>
                     </div>
                     <div class="cols-container">
                         ${row.columns.map((col, ci) => `
                             <div class="col-item" id="config-container-row-${ri}-col-${ci}">
-                                <label class="form-label" style="font-size: 0.75rem;">Kolom ${ci + 1} type</label>
+                                <label class="form-label" style="font-size: 0.75rem;">${labels.columnType.replace('%d', ci + 1)}</label>
                                 <select class="form-select" id="config-row-${ri}-col-${ci}" onchange="updateColType(${ri}, ${ci}, this.value)">
                                     ${renderOptions(col.type)}
                                 </select>
@@ -934,7 +306,7 @@ $nav_back_to_dashboard = $lang['nav_back_to_dashboard'] ?? 'Terug naar Dashboard
             let fHtml = '';
             state.footer.sections.forEach((sec, i) => {
                 fHtml += `<div class="form-group">
-                    <label class="form-label">Vlak ${i + 1} content</label>
+                    <label class="form-label">${labels.vlakContent.replace('%d', i + 1)}</label>
                     <select class="form-select" id="config-footer-${i}" onchange="updateSectionType('footer', ${i}, this.value)">
                         ${renderOptions(sec.type)}
                     </select>

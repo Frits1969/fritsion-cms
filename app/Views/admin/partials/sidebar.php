@@ -1,15 +1,6 @@
 <?php
 $uri = strtok($_SERVER['REQUEST_URI'] ?? '/backoffice', '?');
-$lang = $GLOBALS['lang'] ?? [];
-$nav_dashboard = $lang['nav_dashboard'] ?? 'Dashboard';
-$nav_pages = $lang['nav_pages'] ?? 'Pagina\'s';
-$nav_media = $lang['nav_media'] ?? 'Media';
-$nav_templates = $lang['nav_templates'] ?? 'Templates';
-$nav_themes = $lang['nav_themes'] ?? 'Thema\'s';
-$nav_settings = $lang['nav_settings'] ?? 'Instellingen';
-$nav_homepage = $lang['nav_homepage'] ?? 'Homepage';
-$nav_content_page = $lang['nav_content_page'] ?? 'Contentpagina';
-$nav_visit_site = $lang['nav_visit_site'] ?? 'Website bekijken';
+// Variables $nav_dashboard etc. are already extracted by BaseController::view
 ?>
 <aside class="sidebar">
     <div class="sidebar-header">
@@ -31,20 +22,7 @@ $nav_visit_site = $lang['nav_visit_site'] ?? 'Website bekijken';
             class="nav-item <?= strpos($uri, '/backoffice/templates') === 0 ? 'active' : '' ?>">
             <span><?= $nav_templates ?></span>
         </a>
-        <?php if (strpos($uri, '/backoffice/templates') === 0): ?>
-            <div class="submenu">
-                <a href="/backoffice/templates/homepage"
-                    class="submenu-item <?= $uri === '/backoffice/templates/homepage' ? 'active' : '' ?>">
-                    &nbsp; &nbsp; &bull;
-                    <?= $nav_homepage ?>
-                </a>
-                <a href="/backoffice/templates/content"
-                    class="submenu-item <?= $uri === '/backoffice/templates/content' ? 'active' : '' ?>">
-                    &nbsp; &nbsp; &bull;
-                    <?= $nav_content_page ?>
-                </a>
-            </div>
-        <?php endif; ?>
+<?php /* Submenu removed to simplify as per user request */ ?>
 
         <a href="/backoffice/themes" class="nav-item <?= $uri === '/backoffice/themes' ? 'active' : '' ?>">
             <span><?= $nav_themes ?></span>
@@ -60,32 +38,4 @@ $nav_visit_site = $lang['nav_visit_site'] ?? 'Website bekijken';
         <p style="font-size: 0.8rem; color: var(--text-muted);">v<?= \Fritsion\App::VERSION ?></p>
     </div>
 </aside>
-
-<style>
-    .submenu {
-        margin-top: -5px;
-        margin-bottom: 10px;
-    }
-
-    .submenu-item {
-        display: block;
-        padding: 10px 15px;
-        color: #64748b;
-        text-decoration: none;
-        font-size: 0.85rem;
-        border-radius: 8px;
-        transition: all 0.2s;
-        margin-left: 10px;
-    }
-
-    .submenu-item:hover,
-    .submenu-item.active {
-        color: var(--accent-pink);
-        background: rgba(232, 24, 106, 0.03);
-    }
-
-    .submenu-item.active {
-        font-weight: 700;
-        background: rgba(232, 24, 106, 0.06);
-    }
-</style>
+
