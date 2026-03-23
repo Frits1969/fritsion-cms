@@ -37,7 +37,13 @@ if (file_exists($envFile)) {
         if (strpos(trim($line), '#') === 0)
             continue; // Sla commentaar over
         list($name, $value) = explode('=', $line, 2);
-        $env[trim($name)] = trim($value);
+        $name = trim($name);
+        $value = trim($value);
+        // Remove quotes if present
+        if (preg_match('/^"(.*)"$/', $value, $matches)) {
+            $value = $matches[1];
+        }
+        $env[$name] = $value;
     }
 
     // Haal DB gevevens op

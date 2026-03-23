@@ -3,6 +3,7 @@
 -- Prefix: fcms_
 
 -- Settings Table: Site Configuration
+DROP TABLE IF EXISTS fcms_settings;
 CREATE TABLE IF NOT EXISTS fcms_settings (
     id INT AUTO_INCREMENT PRIMARY KEY,
     setting_key VARCHAR(100) NOT NULL UNIQUE,
@@ -13,6 +14,7 @@ CREATE TABLE IF NOT EXISTS fcms_settings (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Users Table: Admin and User Accounts
+DROP TABLE IF EXISTS fcms_users;
 CREATE TABLE IF NOT EXISTS fcms_users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
@@ -29,6 +31,7 @@ CREATE TABLE IF NOT EXISTS fcms_users (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Sessions Table: Session Management (Optional - for future use)
+DROP TABLE IF EXISTS fcms_sessions;
 CREATE TABLE IF NOT EXISTS fcms_sessions (
     id VARCHAR(128) PRIMARY KEY,
     user_id INT,
@@ -42,6 +45,7 @@ CREATE TABLE IF NOT EXISTS fcms_sessions (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Pages Table: Content Management
+DROP TABLE IF EXISTS fcms_pages;
 CREATE TABLE IF NOT EXISTS fcms_pages (
     id INT AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
@@ -57,6 +61,7 @@ CREATE TABLE IF NOT EXISTS fcms_pages (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Templates Table: Layout definitions
+DROP TABLE IF EXISTS fcms_templates;
 CREATE TABLE IF NOT EXISTS fcms_templates (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL UNIQUE,
