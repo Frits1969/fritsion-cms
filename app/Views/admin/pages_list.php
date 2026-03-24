@@ -118,7 +118,7 @@ $nav_logout = $nav_logout ?? 'Uitloggen';
                             <?php foreach ($pages as $page): ?>
                                 <tr>
                                     <td style="font-weight: 600;">
-                                        <?= htmlspecialchars($page['title']) ?>
+                                        <a href="/backoffice/pages/edit/<?= $page['id'] ?>" style="text-decoration: none; color: inherit;"><?= htmlspecialchars($page['title']) ?></a>
                                         <?php if (($page['is_homepage'] ?? 0) == 1): ?>
                                             <span
                                                 style="display: inline-flex; align-items: center; justify-content: center; background: var(--accent-orange); color: white; font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; margin-left: 8px; vertical-align: middle;">
