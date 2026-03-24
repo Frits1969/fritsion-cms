@@ -1,6 +1,8 @@
 <?php
 $layout = $homepageLayout;
-$pageData = json_decode($page['content'] ?? '{}', true);
+$selectedLang = $_SESSION['lang'] ?? 'nl';
+$pageDataRaw = json_decode($page['content'] ?? '{}', true);
+$pageData = $pageDataRaw[$selectedLang] ?? $pageDataRaw['nl'] ?? $pageDataRaw['en'] ?? $pageDataRaw;
 
 function getDeepValue($obj, $path)
 {

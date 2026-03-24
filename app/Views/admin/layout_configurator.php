@@ -285,7 +285,7 @@ $nav_back_to_dashboard = $lang['nav_back_to_dashboard'] ?? 'Terug naar Dashboard
                     <div class="form-group">
                         <label class="form-label">${labels.rowColumns.replace('%d', ri + 1)}</label>
                         <select class="form-select" onchange="updateColCount(${ri}, this.value)">
-                            ${[1, 2, 3, 4].map(n => `<option value="${n}" ${row.columns.length == n ? 'selected' : ''}>${n} ${n > 1 ? labels.columns : labels.column}</option>`).join('')}
+                            ${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(n => `<option value="${n}" ${row.columns.length == n ? 'selected' : ''}>${n} ${n > 1 ? labels.columns : labels.column}</option>`).join('')}
                         </select>
                     </div>
                     <div class="cols-container">

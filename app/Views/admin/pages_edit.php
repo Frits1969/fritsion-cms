@@ -164,10 +164,21 @@ $slug_tip = $slug_tip ?? "De 'slug' is het deel van de URL dat na de domeinnaam 
         <div class="editor-modal">
             <div class="editor-modal-header">
                 <div class="editor-modal-title"><span>📝</span> <?= $btn_edit ?></div>
-                <button type="button" class="editor-modal-close" onclick="closePopupEditor()">&times;</button>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <button type="button" id="editor-mode-toggle" onclick="toggleEditorMode()"
+                        style="background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text-color); padding: 6px 14px; border-radius: 8px; cursor:pointer; font-size:0.85rem; font-weight:600;">
+                        &lt;/&gt; HTML weergave
+                    </button>
+                    <button type="button" class="editor-modal-close" onclick="closePopupEditor()">&times;</button>
+                </div>
             </div>
-            <div class="editor-modal-body">
-                <textarea id="popup-tinymce"></textarea>
+            <div class="editor-modal-body" style="display:flex; flex-direction:column; gap:0; padding:0;">
+                <textarea id="editor-plain"
+                    style="flex:1; width:100%; min-height:340px; padding:20px; font-family:'Inter',sans-serif; font-size:1rem; line-height:1.7; border:none; resize:vertical; outline:none; background:#fff; color:#1e293b;"
+                    placeholder="<?= $lang['placeholder_text'] ?? 'Voer hier uw tekst in...' ?>"></textarea>
+                <textarea id="editor-html"
+                    style="display:none; flex:1; width:100%; min-height:340px; padding:20px; font-family:monospace; font-size:0.9rem; line-height:1.6; border:none; resize:vertical; outline:none; background:#f8fafc; color:#1e293b;"
+                    placeholder="&lt;p&gt;HTML code hier...&lt;/p&gt;"></textarea>
             </div>
             <div class="editor-modal-footer">
                 <button type="button" class="btn-modal-cancel" onclick="closePopupEditor()"><?= $btn_cancel ?></button>
@@ -206,30 +217,43 @@ $slug_tip = $slug_tip ?? "De 'slug' is het deel van de URL dat na de domeinnaam 
         /** Custom CSS injected purely for the visual canvas inside the CMS admin view */
         const canvasStyles = `
             .visual-canvas {
+                --primary: #3B2A8C;
+                --accent: #E8186A;
+                --text: #1A1336;
+                --muted: #64748b;
+                --bg: #f8fafc;
+                --accent-gradient: linear-gradient(135deg, #E8186A 0%, #C41257 40%, #F0961B 100%);
                 border: 2px solid #e2e8f0; border-radius: 12px; overflow: hidden; margin-top: 20px;
-                background: #f8fafc;
+                background: var(--bg); color: var(--text); line-height: 1.6; font-family: 'Inter', sans-serif;
             }
-            .vc-header { padding: 20px 40px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; background: #fff; }
-            .vc-footer { padding: 40px; border-top: 1px solid #e2e8f0; background: #1a1336; color: white; margin-top: 40px; }
-            .vc-container { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
-            .vc-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 40px; margin-bottom: 60px; align-items: center; }
-            .vc-col { position: relative; border: 1px dashed transparent; padding: 10px; border-radius: 8px; transition: 0.3s; }
-            .vc-col:hover { border-color: #cbd5e1; background: #fff; }
+            .vc-header { background: #fff; border-bottom: 1px solid #e2e8f0; }
+            .vc-header-inner { height: 80px; display: flex; align-items: center; justify-content: space-between; gap: 40px; }
+            .vc-footer { background: var(--text); color: white; padding: 80px 0; margin-top: 80px; }
+            .vc-footer-inner { display: grid; gap: 40px; }
+            .vc-container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+            .vc-main { padding: 60px 0; }
+            .vc-row { display: grid; gap: 40px; margin-bottom: 80px; align-items: center; }
+            .vc-col { position: relative; border: 1px dashed transparent; min-height: 100px; transition: 0.3s; }
+            .vc-col:hover { border-color: #cbd5e1; }
+            .vc-h-section { display: flex; align-items: center; gap: 20px; flex: 1; }
             
             .vc-input-transparent {
                 width: 100%; background: transparent; border: 1px dashed #cbd5e1; padding: 8px; font-family: inherit; font-size: inherit; color: inherit; border-radius: 4px; transition: 0.2s;
             }
-            .vc-input-transparent:focus { border-color: #e8186a; outline: none; background: #fff; color: #1e293b; }
+            .vc-input-transparent:focus { border-color: var(--accent); outline: none; background: #fff; color: #1e293b; }
             
-            .vc-cta-button { display: inline-block; background: linear-gradient(135deg, #E8186A 0%, #F0961B 100%); color: white; border-radius: 50px; text-decoration: none; font-weight: 700; border: none; padding: 4px 0; }
-            .vc-img-preview { max-width: 100%; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.05); }
-            .vc-usp-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-            .vc-usp-card { padding: 10px; background: #f8fafc; border-radius: 12px; font-weight: 600; text-align: center; color: #1e293b; border: 1px solid #e2e8f0; }
-            .vc-logo { max-height: 40px; }
-            .vc-nav { color: #64748b; font-weight: 500; display: flex; gap: 20px; }
+            .vc-cta-button { display: inline-block; background: var(--accent-gradient); color: white; border-radius: 50px; text-decoration: none; font-weight: 700; border: none; padding: 15px 35px; box-shadow: 0 10px 20px rgba(232, 24, 106, 0.2); }
+            .vc-img-preview { max-width: 100%; height: auto; border-radius: 24px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05); display: block; }
+            .vc-usp-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+            .vc-usp-card { padding: 30px; background: #fff; border-radius: 20px; font-weight: 600; text-align: center; color: var(--text); box-shadow: 0 10px 20px rgba(0, 0, 0, 0.02); }
+            .vc-logo { height: 40px; width: auto; }
+            .vc-nav { display: flex; gap: 20px; font-weight: 600; }
             
-            .vc-h1-input { font-family: 'Outfit', sans-serif; font-size: 2.5rem; color: #E8186A; border: none; font-weight: 700; margin-bottom: 20px; width: 100%; }
-            .vc-p-input { font-size: 1.1rem; line-height: 1.6; color: #64748b; width: 100%; height: auto; min-height: 100px; resize: vertical; }
+            .vc-h1-input { font-family: 'Outfit', sans-serif; font-size: 3.5rem; line-height: 1.1; margin-bottom: 20px; width: 100%; background: var(--accent-gradient); -webkit-background-clip: text; color: transparent; border: none; font-weight: 700; padding: 0; }
+            .vc-h1-input:focus { color: var(--text); background: transparent; -webkit-background-clip: border-box; }
+            .vc-p-input { font-size: 1.25rem; color: var(--muted); width: 100%; min-height: 100px; resize: vertical; border: 1px dashed transparent; }
+            .vc-p-input:focus { border-color: #cbd5e1; background: #fff; color: #1a1336; }
+            .vc-h3-input { font-family: 'Outfit', sans-serif; font-size: 1.8rem; margin-bottom: 20px; border: none; }
         `;
         
         // Inject styles
@@ -268,13 +292,17 @@ $slug_tip = $slug_tip ?? "De 'slug' is het deel van de URL dat na de domeinnaam 
 
             let html = `
                 <div class="vc-header">
-                    ${renderVisualSection(layout.header, 'header')}
+                    <div class="vc-container vc-header-inner">
+                        ${renderVisualSection(layout.header, 'header')}
+                    </div>
                 </div>
-                <div class="vc-container">
+                <div class="vc-main vc-container">
                     ${renderVisualSection(layout.main, 'main')}
                 </div>
                 <div class="vc-footer">
-                    ${renderVisualSection(layout.footer, 'footer')}
+                    <div class="vc-container vc-footer-inner" style="grid-template-columns: repeat(${layout.footer?.sections?.length || 1}, 1fr);">
+                        ${renderVisualSection(layout.footer, 'footer')}
+                    </div>
                 </div>
             `;
             visualCanvas.innerHTML = html;
@@ -301,15 +329,19 @@ $slug_tip = $slug_tip ?? "De 'slug' is het deel van de URL dat na de domeinnaam 
             if (!section) return '';
             let html = '';
 
-            if (type === 'header' || type === 'footer') {
-                html += '<div style="display:flex; gap:30px; align-items:center; width:100%;">';
+            if (type === 'header') {
                 section.sections.forEach((s, i) => {
-                    html += `<div style="flex:1;">${renderVisualBlock(s.type, `${type}.sections.${i}`)}</div>`;
+                    const align = i === 0 ? 'flex-start' : (i === 1 ? 'center' : 'flex-end');
+                    html += `<div class="vc-h-section" style="justify-content: ${align};">${renderVisualBlock(s.type, `${type}.sections.${i}`)}</div>`;
                 });
-                html += '</div>';
+            } else if (type === 'footer') {
+                section.sections.forEach((s, i) => {
+                    html += `<div>${renderVisualBlock(s.type, `${type}.sections.${i}`)}</div>`;
+                });
             } else if (type === 'main') {
                 section.rows.forEach((row, ri) => {
-                    html += `<div class="vc-row">`;
+                    const count = row.columns.length;
+                    html += `<div class="vc-row" style="grid-template-columns: repeat(${count}, 1fr);">`;
                     row.columns.forEach((col, ci) => {
                         html += `<div class="vc-col">${renderVisualBlock(col.type, `main.rows.${ri}.columns.${ci}`)}</div>`;
                     });
@@ -328,27 +360,27 @@ $slug_tip = $slug_tip ?? "De 'slug' is het deel van de URL dat na de domeinnaam 
                         <div>
                             <input type="text" class="vc-input-transparent vc-h1-input" placeholder="<?= $lang['placeholder_text'] ?? 'Voer hier uw titel in...' ?>" value="${data.title || ''}" oninput="updateData('${path}.title', this.value)">
                             <div style="position:relative;">
-                                <button type="button" class="btn-edit-popup" onclick="openPopupEditor('${path}.text')" style="position:absolute; right:5px; top:5px; z-index:10; font-size:12px; padding:2px 8px;">✎ Editor</button>
+                                <button type="button" class="btn-edit-popup" onclick="openPopupEditor('${path}.text')" style="position:absolute; right:5px; top:-25px; z-index:10; font-size:12px; padding:2px 8px;">✎ Editor</button>
                                 <textarea id="textarea_${path.replace(/\./g, '_')}_text" class="vc-input-transparent vc-p-input" placeholder="<?= $lang['placeholder_text'] ?? 'Voer hier uw tekst in of gebruik de uitgebreide editor...' ?>" oninput="updateData('${path}.text', this.value)">${data.text || ''}</textarea>
                             </div>
                         </div>
                     `;
                 case 'image':
                     return `
-                        <div class="dropzone" onclick="document.getElementById('file_${path.replace(/\./g, '_')}').click()" style="min-height:200px; display:flex; flex-direction:column; justify-content:center; align-items:center; border:2px dashed #cbd5e1; border-radius:20px; text-align:center; padding:20px; cursor:pointer;" id="dropzone_${path.replace(/\./g, '_')}">
-                            <div class="dropzone-text" style="color:#64748b; margin-bottom:10px;">☁️ Klik of sleep een afbeelding</div>
-                            ${data.url ? `<img src="${data.url}" alt="Preview" class="vc-img-preview" style="max-height:200px;">` : ''}
+                        <div class="dropzone" onclick="document.getElementById('file_${path.replace(/\./g, '_')}').click()" style="min-height:300px; display:flex; flex-direction:column; justify-content:center; align-items:center; background:#f1f5f9; border:2px dashed #cbd5e1; border-radius:24px; text-align:center; padding:20px; cursor:pointer; overflow:hidden;" id="dropzone_${path.replace(/\./g, '_')}">
+                            ${data.url ? `<img src="${data.url}" alt="Preview" class="vc-img-preview" style="max-height:300px; border-radius:20px;">` : `<div style="color:#cbd5e1; font-weight:600;">☁️ Klik of sleep een afbeelding</div>`}
                             <input type="file" id="file_${path.replace(/\./g, '_')}" accept="image/*" style="display:none;" data-path="${path}.url" onchange="handleFileUpload(this, '${path}.url', this.parentNode)">
                             <div class="upload-progress" style="height:4px; background:#10b981; width:0%; transition:0.3s; margin-top:10px; border-radius:2px;"></div>
                         </div>
-                        <input type="text" class="vc-input-transparent" placeholder="Afbeelding URL..." value="${data.url || ''}" oninput="updateData('${path}.url', this.value)" style="margin-top:10px;">
                     `;
                 case 'cta':
                     return `
-                        <div style="text-align:center; background:#f8fafc; padding:30px; border-radius:20px; border:1px solid #e2e8f0;">
-                            <input type="text" class="vc-input-transparent" placeholder="Actie Titel" value="${data.title || ''}" oninput="updateData('${path}.title', this.value)" style="font-size:1.5rem; font-weight:700; text-align:center; margin-bottom:15px; color:#1e293b;">
-                            <input type="text" class="vc-input-transparent vc-cta-button" placeholder="Knop Tekst (bijv. Registreer Nu)" value="${data.button_text || ''}" oninput="updateData('${path}.button_text', this.value)" style="text-align:center; padding:12px 25px;">
-                            <input type="text" class="vc-input-transparent" placeholder="Link (bijv. /contact)" value="${data.url || ''}" oninput="updateData('${path}.url', this.value)" style="margin-top:10px; text-align:center;">
+                        <div>
+                            <input type="text" class="vc-input-transparent vc-h3-input" placeholder="Actie Titel" value="${data.title || ''}" oninput="updateData('${path}.title', this.value)">
+                            <div style="margin-bottom:10px;">
+                                <input type="text" class="vc-input-transparent vc-cta-button" placeholder="Knop Tekst (bijv. Registreer Nu)" value="${data.button_text || ''}" oninput="updateData('${path}.button_text', this.value)" style="text-align:center; display:inline-block; max-width:250px;">
+                            </div>
+                            <input type="text" class="vc-input-transparent" placeholder="Link (bijv. /contact)" value="${data.url || ''}" oninput="updateData('${path}.url', this.value)">
                         </div>
                     `;
                 case 'logo':
@@ -378,22 +410,22 @@ $slug_tip = $slug_tip ?? "De 'slug' is het deel van de URL dat na de domeinnaam 
                         </div>`;
                 case 'video': 
                     return `
-                        <div style="background:#000; height:250px; border-radius:20px; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px;">
+                        <div style="background:linear-gradient(135deg, var(--text) 0%, var(--primary) 100%); height:200px; border-radius:24px; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px;">
                             <span style="color:white; font-size:2rem; margin-bottom:10px;">▶</span>
-                            <input type="text" class="vc-input-transparent" style="color:white; border-color:#333; text-align:center; max-width:80%;" placeholder="YouTube/Video Embed URL" value="${data.url || ''}" oninput="updateData('${path}.url', this.value)">
+                            <input type="text" class="vc-input-transparent" style="color:white; border-color:rgba(255,255,255,0.3); text-align:center; max-width:80%;" placeholder="YouTube/Video Embed URL" value="${data.url || ''}" oninput="updateData('${path}.url', this.value)">
                         </div>`;
                 case 'html': 
                     return `
-                        <div style="border:1px solid #cbd5e1; border-radius:10px; overflow:hidden;">
-                            <div style="background:#e2e8f0; padding:5px 10px; font-size:0.8rem; font-weight:600; color:#475569;">&lt;/&gt; HTML Embed Code</div>
-                            <textarea class="vc-input-transparent" style="font-family:monospace; min-height:100px; border:none; resize:vertical; background:#f8fafc;" placeholder="Voer hier je eigen HTML of Embed iframe in..." oninput="updateData('${path}.code', this.value)">${data.code || ''}</textarea>
+                        <div style="border:1px dashed #cbd5e1; border-radius:8px; padding:10px;">
+                            <div style="font-size:0.8rem; font-weight:600; color:#475569; margin-bottom:5px;">&lt;/&gt; HTML Embed Code</div>
+                            <textarea class="vc-input-transparent" style="font-family:monospace; min-height:80px; border:none; resize:vertical; background:#f8fafc;" placeholder="Voer hier je eigen HTML..." oninput="updateData('${path}.code', this.value)">${data.code || ''}</textarea>
                         </div>`;
                 case 'map': 
                     return `
-                        <div style="background:#e0f2fe; border-radius:20px; padding:20px; text-align:center;">
+                        <div style="background:#e0f2fe; height:300px; border-radius:24px; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:20px; text-align:center;">
                             <span style="font-size:2rem;">📍</span>
-                            <div style="color:#0369a1; font-weight:600; margin:10px 0;">Google Maps Locatie / Adres</div>
-                            <input type="text" class="vc-input-transparent" style="background:#fff; border-color:#bae6fd; color:#0369a1; text-align:center;" placeholder="Adres (bijv. Straat 1, Stad)" value="${data.address || ''}" oninput="updateData('${path}.address', this.value)">
+                            <div style="color:#0369a1; font-weight:600; margin:10px 0;">Kaart</div>
+                            <input type="text" class="vc-input-transparent" style="background:#fff; border-color:#bae6fd; color:#0369a1; text-align:center; max-width:300px;" placeholder="Adres (bijv. Straat 1, Stad)" value="${data.address || ''}" oninput="updateData('${path}.address', this.value)">
                         </div>`;
                 default: return `<div style="border:1px dashed #eee; padding:10px;">Blok: ${type}</div>`;
             }
@@ -499,35 +531,15 @@ $slug_tip = $slug_tip ?? "De 'slug' is het deel van de URL dat na de domeinnaam 
 
         function openPopupEditor(path) {
             activeEditorPath = path;
-            const content = getDeepValue(getLangData(), path) || '';
+            const rawContent = getDeepValue(getLangData(), path) || '';
+            
+            // Always open in plain-text view
+            editorMode = 'plain';
+            document.getElementById('editor-plain').value = stripHtml(rawContent);
+            document.getElementById('editor-html').value = rawContent;
+            syncModeUI();
             
             document.getElementById('editor-modal').classList.add('active');
-            
-            if (tinymceInstance) {
-                tinymceInstance.setContent(content);
-            } else {
-                tinymce.init({
-                    selector: '#popup-tinymce',
-                    height: '100%',
-                    menubar: false,
-                    plugins: [
-                        'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
-                        'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-                        'insertdatetime', 'media', 'table', 'help', 'wordcount'
-                    ],
-                    toolbar: 'undo redo | blocks | ' +
-                        'bold italic backcolor | alignleft aligncenter ' +
-                        'alignright alignjustify | bullist numlist outdent indent | ' +
-                        'removeformat | code help',
-                    content_style: 'body { font-family:Inter,Helvetica,Arial,sans-serif; font-size:16px }',
-                    setup: function(editor) {
-                        tinymceInstance = editor;
-                        editor.on('init', function() {
-                            editor.setContent(content);
-                        });
-                    }
-                });
-            }
         }
 
         function closePopupEditor() {
@@ -536,19 +548,64 @@ $slug_tip = $slug_tip ?? "De 'slug' is het deel van de URL dat na de domeinnaam 
         }
 
         function savePopupEditorContent() {
-            if (tinymceInstance && activeEditorPath) {
-                const content = tinymceInstance.getContent();
-                updateData(activeEditorPath, content);
-                
-                // Also update the hidden textarea if it exists to keep UI in sync
-                const textareaId = `textarea_${activeEditorPath.replace(/\./g, '_')}`;
-                const textarea = document.getElementById(textareaId);
-                if (textarea) {
-                    textarea.value = content;
-                }
-                
-                closePopupEditor();
+            if (!activeEditorPath) return;
+
+            // Always save as plain text (strip any HTML)
+            let finalContent;
+            if (editorMode === 'html') {
+                // They were editing HTML — strip it to plain text
+                finalContent = stripHtml(document.getElementById('editor-html').value);
+            } else {
+                finalContent = document.getElementById('editor-plain').value;
             }
+
+            updateData(activeEditorPath, finalContent);
+            renderVisualCanvas();
+            closePopupEditor();
+        }
+
+        // Editor mode toggle: 'plain' or 'html'
+        let editorMode = 'plain';
+
+        function toggleEditorMode() {
+            if (editorMode === 'plain') {
+                // Switch to HTML: take plain text, don't add HTML yet (show raw stored value)
+                const stored = getDeepValue(getLangData(), activeEditorPath) || '';
+                document.getElementById('editor-html').value = stored;
+                editorMode = 'html';
+            } else {
+                // Switch to plain: strip HTML from the current html textarea
+                const htmlVal = document.getElementById('editor-html').value;
+                document.getElementById('editor-plain').value = stripHtml(htmlVal);
+                editorMode = 'plain';
+            }
+            syncModeUI();
+        }
+
+        function syncModeUI() {
+            const plainEl = document.getElementById('editor-plain');
+            const htmlEl  = document.getElementById('editor-html');
+            const toggleBtn = document.getElementById('editor-mode-toggle');
+
+            if (editorMode === 'plain') {
+                plainEl.style.display = 'block';
+                htmlEl.style.display  = 'none';
+                toggleBtn.textContent = '&lt;/&gt; HTML weergave';
+            } else {
+                plainEl.style.display = 'none';
+                htmlEl.style.display  = 'block';
+                toggleBtn.textContent = '📝 Tekst weergave';
+            }
+        }
+
+        function stripHtml(html) {
+            const tmp = document.createElement('div');
+            tmp.innerHTML = html;
+            // Preserve newlines from block elements
+            tmp.querySelectorAll('p, br, div').forEach(el => {
+                el.insertAdjacentText('afterend', '\n');
+            });
+            return (tmp.textContent || tmp.innerText || '').replace(/\n{3,}/g, '\n\n').trim();
         }
 
         // UI Handlers (Event listeners only, variables defined above)
