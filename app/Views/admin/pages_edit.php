@@ -140,8 +140,8 @@ $slug_tip = $slug_tip ?? "De 'slug' is het deel van de URL dat na de domeinnaam 
                             </select>
                         </div>
 
-                        <!-- Dynamic Blocks Section -->
-                        <div id="dynamic-blocks" class="blocks-container">
+                        <!-- Visual Inline Builder -->
+                        <div id="visual-editor-canvas" class="visual-canvas" style="display: none;">
                             <div class="empty-template"><?= $msg_select_template ?></div>
                         </div>
 
@@ -155,21 +155,6 @@ $slug_tip = $slug_tip ?? "De 'slug' is het deel van de URL dat na de domeinnaam 
                     </form>
                 </div>
 
-                <!-- Preview Panel -->
-                <div class="preview-panel">
-                    <div class="preview-header">
-                        <div style="display: flex; gap: 6px;">
-                            <div class="preview-dot"></div>
-                            <div class="preview-dot"></div>
-                            <div class="preview-dot"></div>
-                        </div>
-                        <div style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted);"><?= $label_live_preview ?></div>
-                        <div style="width: 40px;"></div>
-                    </div>
-                    <div class="preview-content">
-                        <iframe id="preview-frame" class="preview-frame"></iframe>
-                    </div>
-                </div>
             </div>
         </main>
     </div>
@@ -195,8 +180,20 @@ $slug_tip = $slug_tip ?? "De 'slug' is het deel van de URL dat na de domeinnaam 
         const titleInput = document.getElementById('title');
         const slugInput = document.getElementById('slug');
         let isDirty = false;
-        const dynamicBlocksContainer = document.getElementById('dynamic-blocks');
-        const previewFrame = document.getElementById('preview-frame');
+        let pageDataObj = <?= $page['content'] ?: '{}' ?>;
+        // Data structure mapping: if pageDataObj doesn't have lang keys, wrap it in current language
+        if (Object.keys(pageDataObj).length > 0 && !pageDataObj.nl && !pageDataObj.en) {
+            let migrated = { "nl": pageDataObj, "en": JSON.parse(JSON.stringify(pageDataObj)) };
+            pageDataObj = migrated;
+        }
+        let editorLang = '<?= $_SESSION['lang'] ?? 'nl' ?>';
+
+        function getLangData() {
+            if (!pageDataObj[editorLang]) pageDataObj[editorLang] = {};
+            return pageDataObj[editorLang];
+        }
+
+        const visualCanvas = document.getElementById('visual-editor-canvas');
         const contentJsonInput = document.getElementById('content-json');
         
         const userWidget = document.getElementById('user-widget');
@@ -205,25 +202,44 @@ $slug_tip = $slug_tip ?? "De 'slug' is het deel van de URL dat na de domeinnaam 
 
         const siteSettings = <?= json_encode($siteSettings ?? []) ?>;
         let currentTemplate = null;
-        let pageData = <?= json_encode(json_decode($page['content'] ?? '{}', true)) ?>;
 
-        const blockDefinitions = {
-            'text': { name: '<?= $block_text ?>', icon: '📝', fields: [{ name: 'title', type: 'text', label: '<?= $label_title ?>' }, { name: 'text', type: 'textarea', label: '<?= $label_text ?>' }] },
-            'image': { name: '<?= $block_image ?>', icon: '🖼️', fields: [{ name: 'url', type: 'image', label: '<?= $block_image ?>' }, { name: 'alt', type: 'text', label: '<?= $label_alt_text ?>' }] },
-            'cta': { name: '<?= $block_cta ?>', icon: '🎯', fields: [{ name: 'title', type: 'text', label: '<?= $label_title ?>' }, { name: 'button_text', type: 'text', label: '<?= $label_button_text ?>' }, { name: 'url', type: 'text', label: 'Link' }] },
-            'logo': { name: '<?= $block_logo ?>', icon: '✨', fields: [] },
-            'menu': { name: '<?= $block_menu ?>', icon: '☰', fields: [{ name: 'items', type: 'text', label: '<?= $label_items ?>' }] },
-            'socials': { name: '<?= $block_socials ?>', icon: '📱', fields: [{ name: 'facebook', type: 'text', label: '<?= $label_facebook ?>' }, { name: 'instagram', type: 'text', label: '<?= $label_instagram ?>' }] },
-            'usps': { name: '<?= $block_usps ?>', icon: '🚀', fields: [{ name: 'usp_1', type: 'text', label: '<?= $label_usp_1 ?>' }, { name: 'usp_2', type: 'text', label: '<?= $label_usp_2 ?>' }, { name: 'usp_3', type: 'text', label: '<?= $label_usp_3 ?>' }] },
-            'video': { name: '<?= $block_video ?>', icon: '🎬', fields: [{ name: 'url', type: 'text', label: 'YouTube/Video URL' }] },
-            'html': { name: '<?= $block_html ?>', icon: '💻', fields: [{ name: 'code', type: 'textarea', label: 'HTML/Embed Code' }] },
-            'map': { name: '<?= $block_map ?>', icon: '📍', fields: [{ name: 'address', type: 'text', label: '<?= $label_address ?>' }] }
-        };
+        /** Custom CSS injected purely for the visual canvas inside the CMS admin view */
+        const canvasStyles = `
+            .visual-canvas {
+                border: 2px solid #e2e8f0; border-radius: 12px; overflow: hidden; margin-top: 20px;
+                background: #f8fafc;
+            }
+            .vc-header { padding: 20px 40px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; background: #fff; }
+            .vc-footer { padding: 40px; border-top: 1px solid #e2e8f0; background: #1a1336; color: white; margin-top: 40px; }
+            .vc-container { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
+            .vc-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 40px; margin-bottom: 60px; align-items: center; }
+            .vc-col { position: relative; border: 1px dashed transparent; padding: 10px; border-radius: 8px; transition: 0.3s; }
+            .vc-col:hover { border-color: #cbd5e1; background: #fff; }
+            
+            .vc-input-transparent {
+                width: 100%; background: transparent; border: 1px dashed #cbd5e1; padding: 8px; font-family: inherit; font-size: inherit; color: inherit; border-radius: 4px; transition: 0.2s;
+            }
+            .vc-input-transparent:focus { border-color: #e8186a; outline: none; background: #fff; color: #1e293b; }
+            
+            .vc-cta-button { display: inline-block; background: linear-gradient(135deg, #E8186A 0%, #F0961B 100%); color: white; border-radius: 50px; text-decoration: none; font-weight: 700; border: none; padding: 4px 0; }
+            .vc-img-preview { max-width: 100%; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.05); }
+            .vc-usp-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+            .vc-usp-card { padding: 10px; background: #f8fafc; border-radius: 12px; font-weight: 600; text-align: center; color: #1e293b; border: 1px solid #e2e8f0; }
+            .vc-logo { max-height: 40px; }
+            .vc-nav { color: #64748b; font-weight: 500; display: flex; gap: 20px; }
+            
+            .vc-h1-input { font-family: 'Outfit', sans-serif; font-size: 2.5rem; color: #E8186A; border: none; font-weight: 700; margin-bottom: 20px; width: 100%; }
+            .vc-p-input { font-size: 1.1rem; line-height: 1.6; color: #64748b; width: 100%; height: auto; min-height: 100px; resize: vertical; }
+        `;
+        
+        // Inject styles
+        const styleTag = document.createElement('style');
+        styleTag.innerHTML = canvasStyles;
+        document.head.appendChild(styleTag);
 
         async function handleTemplateChange(templateId) {
             if (!templateId) {
-                dynamicBlocksContainer.innerHTML = '<div class="empty-template"><?= $msg_select_template ?></div>';
-                updatePreview();
+                visualCanvas.style.display = 'none';
                 return;
             }
 
@@ -232,10 +248,6 @@ $slug_tip = $slug_tip ?? "De 'slug' is het deel van de URL dat na de domeinnaam 
                 const template = await response.json();
                 currentTemplate = template;
 
-                const layout = JSON.parse(template.layout_json);
-                renderBlockFields(layout);
-
-                // Specific Homepage logic
                 if (template.type === 'homepage') {
                     slugInput.value = '/';
                     slugInput.readOnly = true;
@@ -243,131 +255,152 @@ $slug_tip = $slug_tip ?? "De 'slug' is het deel van de URL dat na de domeinnaam 
                     slugInput.readOnly = false;
                 }
 
-                updatePreview();
+                renderVisualCanvas();
             } catch (error) {
                 console.error('Error fetching template:', error);
             }
         }
 
-        function renderBlockFields(layout) {
-            dynamicBlocksContainer.innerHTML = '';
+        function renderVisualCanvas() {
+            if (!currentTemplate) return;
+            visualCanvas.style.display = 'block';
+            const layout = JSON.parse(currentTemplate.layout_json);
 
-            // Render Header Sections
-            if (layout.header && layout.header.sections) {
-                appendSectionLabel('<?= $lang['section_header'] ?? "Header" ?>');
-                layout.header.sections.forEach((section, index) => {
-                    appendBlockField(`header.sections.${index}`, section.type);
-                });
-            }
-
-            // Render Main Rows/Cols
-            if (layout.main && layout.main.rows) {
-                appendSectionLabel('<?= $lang['label_content'] ?? "Inhoud" ?>');
-                layout.main.rows.forEach((row, rowIndex) => {
-                    row.columns.forEach((col, colIndex) => {
-                        appendBlockField(`main.rows.${rowIndex}.columns.${colIndex}`, col.type);
-                    });
-                });
-            }
-
-            // Render Footer Sections
-            if (layout.footer && layout.footer.sections) {
-                appendSectionLabel('<?= $lang['section_footer'] ?? "Footer" ?>');
-                layout.footer.sections.forEach((section, index) => {
-                    appendBlockField(`footer.sections.${index}`, section.type);
-                });
-            }
-        }
-
-        function appendSectionLabel(text) {
-            const label = document.createElement('div');
-            label.className = 'section-label';
-            label.textContent = text;
-            dynamicBlocksContainer.appendChild(label);
-        }
-
-        function appendBlockField(path, type) {
-            const def = blockDefinitions[type] || { name: type, icon: '📦', fields: [{ name: 'value', type: 'text', label: 'Waarde' }] };
-            const blockDiv = document.createElement('div');
-            blockDiv.className = 'block-item';
-
-            let fieldsHtml = `<div class="block-header"><span class="block-icon">${def.icon}</span> ${def.name}</div>`;
-
-            if (type === 'logo') {
-                const logoUrl = siteSettings.site_logo || '/assets/logo/logo_fritsion_cms.png';
-                fieldsHtml += `
-                    <div style="padding: 15px; background: #fff; border-radius: 10px; border: 1px solid var(--glass-border); text-align: center;">
-                        <img src="${logoUrl}" style="max-height: 50px; margin-bottom: 10px; display: block; margin-left: auto; margin-right: auto;">
-                        <div style="font-size: 0.75rem; color: var(--text-muted);">
-                            <?= $lang['msg_logo_settings'] ?? "Systeembrede instelling. Wijzig dit logo via" ?> <a href="/backoffice/settings" target="_blank" style="color: var(--accent-pink);"><?= $nav_settings ?></a>.
-                        </div>
-                    </div>
-                `;
-            }
-
-            def.fields.forEach(field => {
-                const value = getDeepValue(pageData, `${path}.${field.name}`) || '';
-
-                if (field.type === 'image') {
-                    fieldsHtml += `
-                        <div class="form-group" style="margin-bottom: 10px;">
-                            <label style="font-size: 0.8rem;">${field.label}</label>
-                            <div class="dropzone" id="dropzone_${path.replace(/\./g, '_')}_${field.name}" onclick="document.getElementById('file_${path.replace(/\./g, '_')}_${field.name}').click()">
-                                <div class="dropzone-icon">☁️</div>
-                                <div class="dropzone-text"><?= $lang['msg_dropzone'] ?? "Sleep afbeelding hiernaartoe of klik om te uploaden" ?></div>
-                                ${value ? `<img src="${value}" alt="Preview">` : ''}
-                                <div class="upload-progress" id="progress_${path.replace(/\./g, '_')}_${field.name}"></div>
-                                <input type="file" id="file_${path.replace(/\./g, '_')}_${field.name}" accept="image/*" onchange="handleFileUpload(this, '${path}.${field.name}')">
-                            </div>
-                            <input type="text" class="form-control" style="margin-top: 10px; font-size: 0.8rem;" value="${value}" oninput="updateData('${path}.${field.name}', this.value)" placeholder="<?= $lang['placeholder_url'] ?? "Of voer een URL in..." ?>">
-                        </div>
-                    `;
-                } else {
-                    fieldsHtml += `
-                        <div class="form-group" style="margin-bottom: 15px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                <label style="font-size: 0.85rem; font-weight: 600; color: var(--text-color);">${field.label}</label>
-                                ${field.type === 'textarea' ? `<button type="button" class="btn-edit-popup" onclick="openPopupEditor('${path}.${field.name}')"><span>✨</span> <?= $lang['btn_editor'] ?? "Editor" ?></button>` : ''}
-                            </div>
-                            ${field.type === 'textarea'
-                            ? `<textarea class="form-control" id="textarea_${path.replace(/\./g, '_')}_${field.name}" style="min-height: 120px;" oninput="updateData('${path}.${field.name}', this.value)">${value}</textarea>`
-                            : `<input type="text" class="form-control" value="${value}" oninput="updateData('${path}.${field.name}', this.value)">`
-                        }
-                        </div>
-                    `;
-                }
-            });
-
-            blockDiv.innerHTML = fieldsHtml;
-            dynamicBlocksContainer.appendChild(blockDiv);
-
-            // Setup drag and drop for any dropzones in this block
-            blockDiv.querySelectorAll('.dropzone').forEach(dz => {
-                dz.addEventListener('dragover', (e) => {
-                    e.preventDefault();
-                    dz.classList.add('dragover');
-                });
+            let html = `
+                <div class="vc-header">
+                    ${renderVisualSection(layout.header, 'header')}
+                </div>
+                <div class="vc-container">
+                    ${renderVisualSection(layout.main, 'main')}
+                </div>
+                <div class="vc-footer">
+                    ${renderVisualSection(layout.footer, 'footer')}
+                </div>
+            `;
+            visualCanvas.innerHTML = html;
+            
+            // Re-bind dropzones dynamically
+            visualCanvas.querySelectorAll('.dropzone').forEach(dz => {
+                dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
                 dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
-                dz.addEventListener('drop', (e) => {
+                dz.addEventListener('drop', e => {
                     e.preventDefault();
                     dz.classList.remove('dragover');
                     const file = e.dataTransfer.files[0];
                     if (file && file.type.startsWith('image/')) {
-                        // Extract path from ID
-                        const pathId = dz.id.replace('dropzone_', '');
-                        // Map back to dotted path
-                        // This is a bit tricky, let's use a data attribute instead next time
-                        // For now we assume the ID structure is consistent
-                        const dottedPath = dz.querySelector('input[type="file"]').onchange.toString().match(/'([^']+)'/)[1];
-                        performUpload(file, dottedPath, dz);
+                        const input = dz.querySelector('input[type="file"]');
+                        if(input) {
+                            handleFileUpload({files:[file]}, input.dataset.path, dz);
+                        }
                     }
                 });
             });
         }
 
-        function handleFileUpload(input, path) {
+        function renderVisualSection(section, type) {
+            if (!section) return '';
+            let html = '';
+
+            if (type === 'header' || type === 'footer') {
+                html += '<div style="display:flex; gap:30px; align-items:center; width:100%;">';
+                section.sections.forEach((s, i) => {
+                    html += `<div style="flex:1;">${renderVisualBlock(s.type, `${type}.sections.${i}`)}</div>`;
+                });
+                html += '</div>';
+            } else if (type === 'main') {
+                section.rows.forEach((row, ri) => {
+                    html += `<div class="vc-row">`;
+                    row.columns.forEach((col, ci) => {
+                        html += `<div class="vc-col">${renderVisualBlock(col.type, `main.rows.${ri}.columns.${ci}`)}</div>`;
+                    });
+                    html += `</div>`;
+                });
+            }
+            return html;
+        }
+
+        function renderVisualBlock(type, path) {
+            const data = getDeepValue(getLangData(), path) || {};
+            
+            switch (type) {
+                case 'text':
+                    return `
+                        <div>
+                            <input type="text" class="vc-input-transparent vc-h1-input" placeholder="<?= $lang['placeholder_text'] ?? 'Voer hier uw titel in...' ?>" value="${data.title || ''}" oninput="updateData('${path}.title', this.value)">
+                            <div style="position:relative;">
+                                <button type="button" class="btn-edit-popup" onclick="openPopupEditor('${path}.text')" style="position:absolute; right:5px; top:5px; z-index:10; font-size:12px; padding:2px 8px;">✎ Editor</button>
+                                <textarea id="textarea_${path.replace(/\./g, '_')}_text" class="vc-input-transparent vc-p-input" placeholder="<?= $lang['placeholder_text'] ?? 'Voer hier uw tekst in of gebruik de uitgebreide editor...' ?>" oninput="updateData('${path}.text', this.value)">${data.text || ''}</textarea>
+                            </div>
+                        </div>
+                    `;
+                case 'image':
+                    return `
+                        <div class="dropzone" onclick="document.getElementById('file_${path.replace(/\./g, '_')}').click()" style="min-height:200px; display:flex; flex-direction:column; justify-content:center; align-items:center; border:2px dashed #cbd5e1; border-radius:20px; text-align:center; padding:20px; cursor:pointer;" id="dropzone_${path.replace(/\./g, '_')}">
+                            <div class="dropzone-text" style="color:#64748b; margin-bottom:10px;">☁️ Klik of sleep een afbeelding</div>
+                            ${data.url ? `<img src="${data.url}" alt="Preview" class="vc-img-preview" style="max-height:200px;">` : ''}
+                            <input type="file" id="file_${path.replace(/\./g, '_')}" accept="image/*" style="display:none;" data-path="${path}.url" onchange="handleFileUpload(this, '${path}.url', this.parentNode)">
+                            <div class="upload-progress" style="height:4px; background:#10b981; width:0%; transition:0.3s; margin-top:10px; border-radius:2px;"></div>
+                        </div>
+                        <input type="text" class="vc-input-transparent" placeholder="Afbeelding URL..." value="${data.url || ''}" oninput="updateData('${path}.url', this.value)" style="margin-top:10px;">
+                    `;
+                case 'cta':
+                    return `
+                        <div style="text-align:center; background:#f8fafc; padding:30px; border-radius:20px; border:1px solid #e2e8f0;">
+                            <input type="text" class="vc-input-transparent" placeholder="Actie Titel" value="${data.title || ''}" oninput="updateData('${path}.title', this.value)" style="font-size:1.5rem; font-weight:700; text-align:center; margin-bottom:15px; color:#1e293b;">
+                            <input type="text" class="vc-input-transparent vc-cta-button" placeholder="Knop Tekst (bijv. Registreer Nu)" value="${data.button_text || ''}" oninput="updateData('${path}.button_text', this.value)" style="text-align:center; padding:12px 25px;">
+                            <input type="text" class="vc-input-transparent" placeholder="Link (bijv. /contact)" value="${data.url || ''}" oninput="updateData('${path}.url', this.value)" style="margin-top:10px; text-align:center;">
+                        </div>
+                    `;
+                case 'logo':
+                    if (siteSettings.hide_logo === '1') return '<div style="color:#cbd5e1; font-size:0.8rem; border:1px dashed #cbd5e1; padding:5px; text-align:center; border-radius:5px;">Logo (Verbergen ingeschakeld in instellingen)</div>';
+                    const logoUrl = siteSettings.site_logo || '/assets/logo/logo_fritsion_cms.png';
+                    return `
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <img src="${logoUrl}" class="vc-logo">
+                        </div>`;
+                case 'menu': 
+                    return `
+                        <div class="vc-nav">
+                            <input type="text" class="vc-input-transparent" style="text-align:right;" placeholder="Home, Over ons, Contact (komma gescheiden)" value="${data.items || ''}" oninput="updateData('${path}.items', this.value)">
+                        </div>`;
+                case 'usps': 
+                    return `
+                        <div class="vc-usp-grid">
+                            <input type="text" class="vc-input-transparent vc-usp-card" placeholder="USP 1 (bijv 🚀 Snelle Levering)" value="${data.usp_1 || ''}" oninput="updateData('${path}.usp_1', this.value)">
+                            <input type="text" class="vc-input-transparent vc-usp-card" placeholder="USP 2 (bijv 🛡️ Veilig Betalen)" value="${data.usp_2 || ''}" oninput="updateData('${path}.usp_2', this.value)">
+                            <input type="text" class="vc-input-transparent vc-usp-card" placeholder="USP 3 (bijv 💎 Top Kwaliteit)" value="${data.usp_3 || ''}" oninput="updateData('${path}.usp_3', this.value)">
+                        </div>`;
+                case 'socials': 
+                    return `
+                        <div style="display:flex; gap:10px;">
+                            <input type="text" class="vc-input-transparent" placeholder="Facebook Link URL" value="${data.facebook || ''}" oninput="updateData('${path}.facebook', this.value)">
+                            <input type="text" class="vc-input-transparent" placeholder="Instagram Link URL" value="${data.instagram || ''}" oninput="updateData('${path}.instagram', this.value)">
+                        </div>`;
+                case 'video': 
+                    return `
+                        <div style="background:#000; height:250px; border-radius:20px; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px;">
+                            <span style="color:white; font-size:2rem; margin-bottom:10px;">▶</span>
+                            <input type="text" class="vc-input-transparent" style="color:white; border-color:#333; text-align:center; max-width:80%;" placeholder="YouTube/Video Embed URL" value="${data.url || ''}" oninput="updateData('${path}.url', this.value)">
+                        </div>`;
+                case 'html': 
+                    return `
+                        <div style="border:1px solid #cbd5e1; border-radius:10px; overflow:hidden;">
+                            <div style="background:#e2e8f0; padding:5px 10px; font-size:0.8rem; font-weight:600; color:#475569;">&lt;/&gt; HTML Embed Code</div>
+                            <textarea class="vc-input-transparent" style="font-family:monospace; min-height:100px; border:none; resize:vertical; background:#f8fafc;" placeholder="Voer hier je eigen HTML of Embed iframe in..." oninput="updateData('${path}.code', this.value)">${data.code || ''}</textarea>
+                        </div>`;
+                case 'map': 
+                    return `
+                        <div style="background:#e0f2fe; border-radius:20px; padding:20px; text-align:center;">
+                            <span style="font-size:2rem;">📍</span>
+                            <div style="color:#0369a1; font-weight:600; margin:10px 0;">Google Maps Locatie / Adres</div>
+                            <input type="text" class="vc-input-transparent" style="background:#fff; border-color:#bae6fd; color:#0369a1; text-align:center;" placeholder="Adres (bijv. Straat 1, Stad)" value="${data.address || ''}" oninput="updateData('${path}.address', this.value)">
+                        </div>`;
+                default: return `<div style="border:1px dashed #eee; padding:10px;">Blok: ${type}</div>`;
+            }
+        }
+
+        function handleFileUpload(input, path, dz) {
             const file = input.files[0];
-            const dz = input.closest('.dropzone');
             if (file) {
                 performUpload(file, path, dz);
             }
@@ -395,15 +428,7 @@ $slug_tip = $slug_tip ?? "De 'slug' is het deel van de URL dat na de domeinnaam 
                     const response = JSON.parse(xhr.responseText);
                     if (response.success) {
                         updateData(path, response.url);
-                        // Update preview image in dropzone
-                        let img = dz.querySelector('img');
-                        if (!img) {
-                            img = document.createElement('img');
-                            dz.appendChild(img);
-                        }
-                        img.src = response.url;
-                        dz.querySelector('.dropzone-text').textContent = '<?= $lang['msg_upload_complete'] ?? "Upload voltooid!" ?>';
-                        setTimeout(() => progress.style.width = '0%', 1000);
+                        renderVisualCanvas(); // re-render to show image
                     } else {
                         alert('Fout bij uploaden: ' + response.message);
                     }
@@ -417,98 +442,8 @@ $slug_tip = $slug_tip ?? "De 'slug' is het deel van de URL dat na de domeinnaam 
 
         function updateData(path, value) {
             isDirty = true;
-            setDeepValue(pageData, path, value);
-            updatePreview();
-        }
-
-        function updatePreview() {
-            if (!currentTemplate) return;
-
-            const layout = JSON.parse(currentTemplate.layout_json);
-
-            // Build premium preview HTML
-            let html = `
-                <html>
-                <head>
-                    <base href="/">
-                    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Outfit:wght@700&display=swap" rel="stylesheet">
-                    <style>
-                        body { font-family: 'Inter', sans-serif; margin: 0; color: #1a1336; background: #fff; overflow-x: hidden; }
-                        header { padding: 0 40px; height: 80px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; background: #fff; }
-                        footer { padding: 60px 40px; border-top: 1px solid #f1f5f9; background: #1a1336; color: white; margin-top: 60px; }
-                        .container { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
-                        .row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 40px; margin-bottom: 60px; align-items: center; }
-                        .block { padding: 10px; border-radius: 12px; }
-                        h1 { font-family: 'Outfit', sans-serif; font-size: 2.5rem; margin-bottom: 20px; color: #E8186A; }
-                        p { font-size: 1.1rem; line-height: 1.6; color: #64748b; }
-                        .cta-button { display: inline-block; padding: 14px 30px; background: linear-gradient(135deg, #E8186A 0%, #F0961B 100%); color: white; border-radius: 50px; text-decoration: none; font-weight: 700; margin-top: 20px; box-shadow: 0 10px 20px rgba(232, 24, 106, 0.2); }
-                        img { max-width: 100%; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.05); }
-                        .usp-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-                        .usp-card { padding: 20px; background: #f8fafc; border-radius: 16px; font-weight: 600; text-align: center; }
-                        .logo { max-height: 40px; }
-                        .nav-placeholder { color: #64748b; font-weight: 500; display: flex; gap: 20px; }
-                    </style>
-                </head>
-                <body>
-                    <header>
-                        ${renderLayoutSection(layout.header, 'header')}
-                    </header>
-                    <div class="container">
-                        ${renderLayoutSection(layout.main, 'main')}
-                    </div>
-                    <footer>
-                        ${renderLayoutSection(layout.footer, 'footer')}
-                    </footer>
-                </body>
-                </html>
-            `;
-
-            const doc = previewFrame.contentDocument || previewFrame.contentWindow.document;
-            doc.open();
-            doc.write(html);
-            doc.close();
-        }
-
-        function renderLayoutSection(section, type) {
-            if (!section) return '';
-            let html = '';
-
-            if (type === 'header' || type === 'footer') {
-                html += '<div style="display:flex; gap:30px; align-items:center; width:100%;">';
-                section.sections.forEach((s, i) => {
-                    html += `<div style="flex:1;">${renderBlock(s.type, `${type}.sections.${i}`)}</div>`;
-                });
-                html += '</div>';
-            } else if (type === 'main') {
-                section.rows.forEach((row, ri) => {
-                    html += `<div class="row">`;
-                    row.columns.forEach((col, ci) => {
-                        html += `<div class="col">${renderBlock(col.type, `main.rows.${ri}.columns.${ci}`)}</div>`;
-                    });
-                    html += `</div>`;
-                });
-            }
-            return html;
-        }
-
-        function renderBlock(type, path) {
-            const data = getDeepValue(pageData, path) || {};
-            switch (type) {
-                case 'text': return `<div>\${data.title ? \`<h2>\${data.title}</h2>\` : ''}<div>\${data.text || '<?= $lang['placeholder_text'] ?? "Tekstblok..." ?>'}</div></div>`;
-                case 'image': return data.url ? `<img src="\${data.url}" alt="\${data.alt || ''}">` : `<div style="background:#f1f5f9; height:200px; display:flex; align-items:center; justify-content:center; border-radius:20px; color:#cbd5e1;"><?= $block_image ?></div>`;
-                case 'cta': return `<div><h3>\${data.title || '<?= $lang['msg_cta_title'] ?? "Klaar om te starten?" ?>'}</h3><a href="#" class="cta-button">\${data.button_text || '<?= $lang['btn_register'] ?? "Registeer nu" ?>'}</a></div>`;
-                case 'logo':
-                    if (siteSettings.hide_logo === '1') return '';
-                    const logoUrl = siteSettings.site_logo || '/assets/logo/logo_fritsion_cms.png';
-                    return `<img src="${logoUrl}" class="logo">`;
-                case 'menu': return `<div class="nav-placeholder">${(data.items || 'Home, Over ons, Producten, Contact').split(',').map(i => `<span>${i.trim()}</span>`).join('')}</div>`;
-                case 'usps': return `<div class="usp-grid"><div class="usp-card">🚀 \${data.usp_1 || '<?= $lang['usp_1_default'] ?? "Snelle Levering" ?>'}</div><div class="usp-card">🛡️ \${data.usp_2 || '<?= $lang['usp_2_default'] ?? "Veilig Betalen" ?>'}</div><div class="usp-card">💎 \${data.usp_3 || '<?= $lang['usp_3_default'] ?? "Top Kwaliteit" ?>'}</div></div>`;
-                case 'socials': return `<div style="display:flex; gap:15px; font-size:0.9rem;">${data.facebook ? 'FB ' : ''}${data.instagram ? 'IG ' : ''}</div>`;
-                case 'video': return `<div style="background:#000; height:250px; border-radius:20px; display:flex; align-items:center; justify-content:center; color:white;">▶ Play Video</div>`;
-                case 'html': return data.code || '<pre>&lt;Custom HTML&gt;</pre>';
-                case 'map': return `<div style="background:#e0f2fe; height:200px; border-radius:20px; display:flex; align-items:center; justify-content:center; color:#0369a1;">📍 <?= $block_map ?>: \${data.address || '<?= $lang['label_address'] ?? "Locatie" ?>'}</div>`;
-                default: return `<div style="border:1px dashed #eee; padding:10px;"><?= $lang['label_block'] ?? "Blok" ?>: \${type}</div>`;
-            }
+            let langData = getLangData();
+            setDeepValue(langData, path, value);
         }
 
         // Helper functions
@@ -533,7 +468,9 @@ $slug_tip = $slug_tip ?? "De 'slug' is het deel van de URL dat na de domeinnaam 
                 const content = tinymceInstance.getContent();
                 updateData(activeEditorPath, content);
             }
-            contentJsonInput.value = JSON.stringify(pageData);
+            contentJsonInput.value = JSON.stringify(pageDataObj);
+            
+            // Allow submission to continue naturally so AdminController processes it
         });
 
         // Slug generation
@@ -546,7 +483,6 @@ $slug_tip = $slug_tip ?? "De 'slug' is het deel van de URL dat na de domeinnaam 
                     .replace(/^-+|-+$/g, '');
                 slugInput.value = slug;
             }
-            updatePreview();
         });
 
         // Initialize state
@@ -563,7 +499,7 @@ $slug_tip = $slug_tip ?? "De 'slug' is het deel van de URL dat na de domeinnaam 
 
         function openPopupEditor(path) {
             activeEditorPath = path;
-            const content = getDeepValue(pageData, path) || '';
+            const content = getDeepValue(getLangData(), path) || '';
             
             document.getElementById('editor-modal').classList.add('active');
             
@@ -640,12 +576,27 @@ $slug_tip = $slug_tip ?? "De 'slug' is het deel van de URL dat na de domeinnaam 
                 return;
             }
 
-            // If already expanded and clicking the other flag
-            const currentLang = '<?= $_SESSION['lang'] ?? 'nl' ?>';
-            if (currentLang !== lang && isDirty) {
-                if (!confirm('<?= $msg_unsaved_changes ?>')) {
-                    event.preventDefault();
-                    langSwitcher.classList.remove('expanded');
+            event.preventDefault(); // Prevent standard page reload entirely
+            langSwitcher.classList.remove('expanded');
+
+            if (editorLang !== lang) {
+                // Determine new flag icon
+                const oldFlagIcon = document.querySelector(`.lang-select a[href="?lang=${editorLang}"] img`);
+                const newFlagIcon = document.querySelector(`.lang-select a[href="?lang=${lang}"] img`);
+                
+                // Visual update for flag (if they want to keep form active instead of full page reload)
+                document.querySelectorAll('.lang-select a').forEach(a => a.classList.remove('active'));
+                const newActiveFlag = document.querySelector(`.lang-select a[href="?lang=${lang}"]`);
+                if(newActiveFlag) newActiveFlag.classList.add('active');
+
+                // Switch language and Re-render canvas!
+                editorLang = lang;
+                
+                // Also update session lang in background so if they save, it's correct context
+                fetch(`?lang=${lang}`); 
+
+                if (currentTemplate) {
+                    renderVisualCanvas();
                 }
             }
         }
