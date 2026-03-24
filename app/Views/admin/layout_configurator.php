@@ -127,7 +127,20 @@ $nav_back_to_dashboard = $lang['nav_back_to_dashboard'] ?? 'Terug naar Dashboard
         </form>
     </div>
 
-    <div class="alert-toast" id="saveToast"><?= $lang['msg_layout_saved'] ?? 'Layout succesvol opgeslagen!' ?></div>
+    <div class="alert-toast" id="saveToast">
+        ✅ <?= $lang['msg_layout_saved'] ?? 'Layout succesvol opgeslagen!' ?>
+        &nbsp;|&nbsp; 🔄 <?= $lang['msg_pages_auto_updated'] ?? 'Alle pagina\'s die deze template gebruiken zijn automatisch bijgewerkt.' ?>
+    </div>
+
+    <?php if (isset($_GET['saved'])): ?>
+    <div id="saved-banner" style="position:fixed; bottom:30px; left:50%; transform:translateX(-50%); background:linear-gradient(135deg,#10b981,#059669); color:white; padding:14px 28px; border-radius:50px; font-weight:600; font-size:0.95rem; z-index:9999; box-shadow:0 10px 30px rgba(16,185,129,0.3); display:flex; gap:12px; align-items:center;">
+        <span>✅</span>
+        <span><?= $lang['msg_layout_saved'] ?? 'Template opgeslagen!' ?></span>
+        <span style="opacity:0.8; font-weight:400;">— <?= $lang['msg_pages_auto_updated'] ?? 'Pagina\'s bijgewerkt.' ?></span>
+        <button onclick="document.getElementById('saved-banner').remove()" style="background:rgba(255,255,255,0.2); border:none; color:white; border-radius:50%; width:24px; height:24px; cursor:pointer; font-size:1rem; display:flex; align-items:center; justify-content:center; flex-shrink:0;">&times;</button>
+    </div>
+    <script>setTimeout(() => { const b = document.getElementById('saved-banner'); if(b) b.remove(); }, 5000);</script>
+    <?php endif; ?>
 
     <script>
         let state = <?= $layoutJson ?>;

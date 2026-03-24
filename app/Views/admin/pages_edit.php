@@ -111,6 +111,12 @@ $slug_tip = $slug_tip ?? "De 'slug' is het deel van de URL dat na de domeinnaam 
                                     </option>
                                 <?php endforeach; ?>
                             </select>
+                            <div style="display:flex; gap:8px; margin-top:8px; align-items:center;">
+                                <button type="button" id="btn-refresh-template" onclick="refreshTemplate()" style="display:none; background:var(--glass-bg); border:1px solid var(--glass-border); color:var(--text-muted); padding:5px 12px; border-radius:8px; font-size:0.8rem; cursor:pointer; transition:0.2s;" title="<?= $lang['tooltip_refresh_template'] ?? 'Herlaad laatste template-indeling' ?>">
+                                    🔄 <?= $lang['btn_refresh_template'] ?? 'Template vernieuwen' ?>
+                                </button>
+                                <small id="template-refresh-hint" style="display:none; color:var(--text-muted); font-size:0.75rem;">💡 <?= $lang['msg_template_live'] ?? 'Wijzigingen in de template zijn direct zichtbaar op alle pagina\'s.' ?></small>
+                            </div>
                         </div>
 
                         <div class="form-group">
@@ -264,11 +270,13 @@ $slug_tip = $slug_tip ?? "De 'slug' is het deel van de URL dat na de domeinnaam 
         async function handleTemplateChange(templateId) {
             if (!templateId) {
                 visualCanvas.style.display = 'none';
+                document.getElementById('btn-refresh-template').style.display = 'none';
+                document.getElementById('template-refresh-hint').style.display = 'none';
                 return;
             }
 
             try {
-                const response = await fetch(`/backoffice/templates/get/${templateId}`);
+                const response = await fetch(`/backoffice/templates/get/${templateId}?nocache=${Date.now()}`);
                 const template = await response.json();
                 currentTemplate = template;
 
@@ -279,9 +287,39 @@ $slug_tip = $slug_tip ?? "De 'slug' is het deel van de URL dat na de domeinnaam 
                     slugInput.readOnly = false;
                 }
 
+                // Show the refresh button and hint
+                document.getElementById('btn-refresh-template').style.display = 'inline-block';
+                document.getElementById('template-refresh-hint').style.display = 'inline';
+
                 renderVisualCanvas();
             } catch (error) {
                 console.error('Error fetching template:', error);
+            }
+        }
+
+        async function refreshTemplate() {
+            const templateId = document.getElementById('template_id').value;
+            if (!templateId) return;
+
+            const btn = document.getElementById('btn-refresh-template');
+            btn.textContent = '⏳ Laden...';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch(`/backoffice/templates/get/${templateId}?nocache=${Date.now()}`);
+                const template = await response.json();
+                currentTemplate = template;
+                renderVisualCanvas();
+
+                btn.textContent = '✅ Vernieuwd!';
+                setTimeout(() => {
+                    btn.textContent = '🔄 <?= $lang['btn_refresh_template'] ?? 'Template vernieuwen' ?>';
+                    btn.disabled = false;
+                }, 1500);
+            } catch (error) {
+                btn.textContent = '🔄 <?= $lang['btn_refresh_template'] ?? 'Template vernieuwen' ?>';
+                btn.disabled = false;
+                console.error('Error refreshing template:', error);
             }
         }
 
