@@ -378,10 +378,10 @@ $slug_tip = $slug_tip ?? "De 'slug' is het deel van de URL dat na de domeinnaam 
                 });
             } else if (type === 'main') {
                 section.rows.forEach((row, ri) => {
-                    const count = row.columns.length;
-                    html += `<div class="vc-row" style="grid-template-columns: repeat(${count}, 1fr);">`;
+                    html += `<div class="vc-row" style="display: grid; grid-template-columns: repeat(12, 1fr); gap: 40px; margin-bottom: 80px; align-items: center;">`;
                     row.columns.forEach((col, ci) => {
-                        html += `<div class="vc-col">${renderVisualBlock(col.type, `main.rows.${ri}.columns.${ci}`)}</div>`;
+                        const width = col.width || Math.floor(12 / (row.columns.length || 1));
+                        html += `<div class="vc-col" style="grid-column: span ${width};">${renderVisualBlock(col.type, `main.rows.${ri}.columns.${ci}`)}</div>`;
                     });
                     html += `</div>`;
                 });

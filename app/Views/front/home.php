@@ -280,6 +280,9 @@ function renderBlock($type, $path, $pageData, $settings)
             .row {
                 grid-template-columns: 1fr !important;
             }
+            .col {
+                grid-column: span 1 !important;
+            }
 
             .block-text h1 {
                 font-size: 2.5rem;
@@ -310,9 +313,10 @@ function renderBlock($type, $path, $pageData, $settings)
 
         <main class="container">
             <?php foreach ($layout['main']['rows'] ?? [] as $ri => $row): ?>
-                <div class="row" style="grid-template-columns: repeat(<?= count($row['columns'] ?? []) ?>, 1fr);">
+                <div class="row" style="display: grid; grid-template-columns: repeat(12, 1fr); gap: 40px; margin-bottom: 80px; align-items: center;">
                     <?php foreach ($row['columns'] ?? [] as $ci => $col): ?>
-                        <div class="col block-<?= $col['type'] ?>">
+                        <?php $width = $col['width'] ?? floor(12 / (count($row['columns']) ?: 1)); ?>
+                        <div class="col block-<?= $col['type'] ?>" style="grid-column: span <?= $width ?>;">
                             <?= renderBlock($col['type'], "main.rows.$ri.columns.$ci", $pageData, $settings) ?>
                         </div>
                     <?php endforeach; ?>

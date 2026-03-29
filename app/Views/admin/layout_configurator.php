@@ -226,7 +226,7 @@ $nav_back_to_dashboard = $lang['nav_back_to_dashboard'] ?? 'Terug naar Dashboard
         }
 
         function addRow() {
-            state.main.rows.push({ columns: [{ type: 'text' }] });
+            state.main.rows.push({ columns: [{ type: 'text', width: 12 }] });
             renderConfig();
             renderPreview();
         }
@@ -258,9 +258,33 @@ $nav_back_to_dashboard = $lang['nav_back_to_dashboard'] ?? 'Terug naar Dashboard
         function updateColCount(rowIndex, count) {
             count = parseInt(count);
             let row = state.main.rows[rowIndex];
-            while (row.columns.length < count) row.columns.push({ type: 'text' });
-            while (row.columns.length > count) row.columns.pop();
+            
+            // Adjust columns
+            while (row.columns.length < count) {
+                row.columns.push({ type: 'text', width: 1 });
+            }
+            while (row.columns.length > count) {
+                row.columns.pop();
+            }
+
+            // Recalculate widths to fit 12 columns evenly if possible
+            const defaultWidth = Math.floor(12 / count);
+            row.columns.forEach((col, i) => {
+                col.width = defaultWidth;
+            });
+
+            // Distribute remainder to the last column
+            const currentSum = row.columns.reduce((sum, col) => sum + col.width, 0);
+            if (currentSum < 12 && row.columns.length > 0) {
+                row.columns[row.columns.length - 1].width += (12 - currentSum);
+            }
+
             renderConfig();
+            renderPreview();
+        }
+
+        function updateColWidth(rowIndex, colIndex, width) {
+            state.main.rows[rowIndex].columns[colIndex].width = parseInt(width);
             renderPreview();
         }
 
@@ -302,14 +326,28 @@ $nav_back_to_dashboard = $lang['nav_back_to_dashboard'] ?? 'Terug naar Dashboard
                         </select>
                     </div>
                     <div class="cols-container">
-                        ${row.columns.map((col, ci) => `
-                            <div class="col-item" id="config-container-row-${ri}-col-${ci}">
-                                <label class="form-label" style="font-size: 0.75rem;">${labels.columnType.replace('%d', ci + 1)}</label>
-                                <select class="form-select" id="config-row-${ri}-col-${ci}" onchange="updateColType(${ri}, ${ci}, this.value)">
-                                    ${renderOptions(col.type)}
-                                </select>
-                            </div>
-                        `).join('')}
+                        ${row.columns.map((col, ci) => {
+                            const currentWidth = col.width || Math.floor(12 / (row.columns.length || 1));
+                            const otherColsSum = row.columns.reduce((sum, c, i) => i !== ci ? sum + (c.width || 0) : sum, 0);
+                            const maxWidth = 12 - otherColsSum;
+
+                            return `
+                                <div class="col-item" id="config-container-row-${ri}-col-${ci}">
+                                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                                        <label class="form-label" style="font-size: 0.75rem;">${labels.columnType.replace('%d', ci + 1)}</label>
+                                        <div style="display:flex; align-items:center; gap:5px;">
+                                            <span style="font-size:0.7rem; color:var(--text-muted);">↔️</span>
+                                            <select class="form-select" style="width:60px; padding:2px 4px; font-size:0.75rem;" onchange="updateColWidth(${ri}, ${ci}, this.value)">
+                                                ${[1,2,3,4,5,6,7,8,9,10,11,12].map(w => `<option value="${w}" ${currentWidth == w ? 'selected' : ''} ${w > maxWidth && w != currentWidth ? 'disabled' : ''}>${w}</option>`).join('')}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <select class="form-select" id="config-row-${ri}-col-${ci}" onchange="updateColType(${ri}, ${ci}, this.value)">
+                                        ${renderOptions(col.type)}
+                                    </select>
+                                </div>
+                            `;
+                        }).join('')}
                     </div>
                 </div>`;
             });
@@ -348,12 +386,14 @@ $nav_back_to_dashboard = $lang['nav_back_to_dashboard'] ?? 'Terug naar Dashboard
 
             // Main Preview
             document.getElementById('pvMain').innerHTML = state.main.rows.map((row, ri) => {
-                return `<div class="pv-row" style="grid-template-columns: repeat(${row.columns.length}, 1fr);">
+                return `<div class="pv-row" style="display: grid; grid-template-columns: repeat(12, 1fr); gap: 10px;">
                     ${row.columns.map((col, ci) => {
                     let info = contentTypes.find(ct => ct.id === col.type);
-                    return `<div class="pv-col" id="pv-row-${ri}-col-${ci}" onclick="handlePreviewClick('content[${ri}][${ci}]', 'row-${ri}-col-${ci}')">
+                    const width = col.width || Math.floor(12 / (row.columns.length || 1));
+                    return `<div class="pv-col" id="pv-row-${ri}-col-${ci}" style="grid-column: span ${width};" onclick="handlePreviewClick('content[${ri}][${ci}]', 'row-${ri}-col-${ci}')">
                             <span class="pv-col-icon">${info.icon}</span>
                             <span class="pv-col-type">${info.name}</span>
+                            <span style="position:absolute; bottom:2px; right:5px; font-size:0.6rem; opacity:0.5;">${width}/12</span>
                         </div>`;
                 }).join('')}
                 </div>`;
