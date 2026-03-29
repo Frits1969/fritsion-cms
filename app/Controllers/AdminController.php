@@ -77,6 +77,24 @@ class AdminController extends BaseController
             }
         }
 
+        // Fetch template count
+        $templateCount = 0;
+        $checkTplTable = $db->query("SHOW TABLES LIKE '{$prefix}templates'");
+        if ($checkTplTable && $checkTplTable->num_rows > 0) {
+            $res = $db->query("SELECT COUNT(*) as count FROM {$prefix}templates");
+            if ($res) {
+                $row = $res->fetch_assoc();
+                $templateCount = $row['count'];
+            }
+        }
+
+        // Fetch media count
+        $mediaCount = 0;
+        $uploadBase = __DIR__ . '/../../public/uploads/';
+        if (is_dir($uploadBase)) {
+            $mediaCount = $this->countMediaFiles($uploadBase);
+        }
+
         // Fetch site status
         $siteStatus = 'inactive';
         $res = $db->query("SELECT setting_value FROM {$prefix}settings WHERE setting_key = 'site_status'");
@@ -87,9 +105,25 @@ class AdminController extends BaseController
 
         $this->view('admin/dashboard', [
             'pageCount' => $pageCount,
+            'templateCount' => $templateCount,
+            'mediaCount' => $mediaCount,
             'latestPages' => $latestPages,
             'siteStatus' => $siteStatus
         ]);
+    }
+
+    private function countMediaFiles($dir) {
+        $count = 0;
+        $files = scandir($dir);
+        foreach ($files as $file) {
+            if ($file === '.' || $file === '..') continue;
+            if (is_dir($dir . '/' . $file)) {
+                $count += $this->countMediaFiles($dir . '/' . $file);
+            } else {
+                $count++;
+            }
+        }
+        return $count;
     }
 
     public function profile()
@@ -404,16 +438,9 @@ class AdminController extends BaseController
             $templateId = !empty($_POST['template_id']) ? (int) $_POST['template_id'] : null;
             $isHomepage = 0;
 
-            // Check if template is a homepage type
-            if ($templateId) {
-                $tplCheck = $db->query("SELECT type FROM {$prefix}templates WHERE id = $templateId");
-                if ($tplCheck && $tplCheck->num_rows > 0) {
-                    $tplRow = $tplCheck->fetch_assoc();
-                    if ($tplRow['type'] === 'homepage') {
-                        $isHomepage = 1;
-                        $slug = '/'; // Overwrite slug for homepage
-                    }
-                }
+            // Check if page is intended to be the homepage (slug is '/')
+            if ($slug === '/') {
+                $isHomepage = 1;
             }
 
             if (empty($title) || empty($slug)) {
@@ -482,16 +509,9 @@ class AdminController extends BaseController
             $templateId = !empty($_POST['template_id']) ? (int) $_POST['template_id'] : null;
             $isHomepage = 0;
 
-            // Check if template is a homepage type
-            if ($templateId) {
-                $tplCheck = $db->query("SELECT type FROM {$prefix}templates WHERE id = $templateId");
-                if ($tplCheck && $tplCheck->num_rows > 0) {
-                    $tplRow = $tplCheck->fetch_assoc();
-                    if ($tplRow['type'] === 'homepage') {
-                        $isHomepage = 1;
-                        $slug = '/'; // Overwrite slug for homepage
-                    }
-                }
+            // Check if page is intended to be the homepage (slug is '/')
+            if ($slug === '/') {
+                $isHomepage = 1;
             }
 
             if (empty($title) || empty($slug)) {
@@ -685,26 +705,29 @@ class AdminController extends BaseController
         if (empty($layoutJson)) {
             $defaultLayout = [
                 'header' => [
+                    'height' => '90px',
                     'sections' => [
-                        ['type' => 'logo'],
-                        ['type' => 'menu'],
-                        ['type' => 'cta']
+                        ['type' => 'logo', 'width' => 4],
+                        ['type' => 'menu', 'width' => 4],
+                        ['type' => 'cta', 'width' => 4]
                     ]
                 ],
                 'main' => [
                     'rows' => [
                         [
+                            'height' => '90px',
                             'columns' => [
-                                ['type' => 'text'],
-                                ['type' => 'image']
+                                ['type' => 'text', 'width' => 6],
+                                ['type' => 'image', 'width' => 6]
                             ]
                         ]
                     ]
                 ],
                 'footer' => [
+                    'height' => '120px',
                     'sections' => [
-                        ['type' => 'text'],
-                        ['type' => 'socials']
+                        ['type' => 'text', 'width' => 6],
+                        ['type' => 'socials', 'width' => 6]
                     ]
                 ]
             ];
@@ -748,25 +771,28 @@ class AdminController extends BaseController
         if (empty($layoutJson)) {
             $defaultLayout = [
                 'header' => [
+                    'height' => '90px',
                     'sections' => [
-                        ['type' => 'logo'],
-                        ['type' => 'menu'],
-                        ['type' => 'cta']
+                        ['type' => 'logo', 'width' => 4],
+                        ['type' => 'menu', 'width' => 4],
+                        ['type' => 'cta', 'width' => 4]
                     ]
                 ],
                 'main' => [
                     'rows' => [
                         [
+                            'height' => '90px',
                             'columns' => [
-                                ['type' => 'text']
+                                ['type' => 'text', 'width' => 12]
                             ]
                         ]
                     ]
                 ],
                 'footer' => [
+                    'height' => '120px',
                     'sections' => [
-                        ['type' => 'text'],
-                        ['type' => 'socials']
+                        ['type' => 'text', 'width' => 6],
+                        ['type' => 'socials', 'width' => 6]
                     ]
                 ]
             ];
@@ -885,49 +911,113 @@ class AdminController extends BaseController
         exit;
     }
 
-    public function uploadMedia()
+    public function media()
     {
         if (!isset($_SESSION['user_id'])) {
-            header('Content-Type: application/json');
-            echo json_encode(['error' => 'Unauthorized']);
+            header('Location: /backoffice/login');
             exit;
         }
 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['file'])) {
+        $subDir = $_GET['dir'] ?? '';
+        // Path safety: remove any leading slashes and prevent ../
+        $subDir = str_replace(['..', '\\'], ['', '/'], ltrim($subDir, '/'));
+        
+        $uploadBase = __DIR__ . '/../../public/uploads/';
+        $targetDir = realpath($uploadBase . $subDir);
+
+        // Security check: ensure target is within uploads
+        if (!$targetDir || strpos($targetDir, realpath($uploadBase)) !== 0) {
+            $targetDir = realpath($uploadBase);
+            if (!$targetDir) {
+                // Folder doesnt exist yet
+                mkdir($uploadBase, 0755, true);
+                $targetDir = realpath($uploadBase);
+            }
+            $subDir = '';
+        }
+
+        $items = [];
+        if (is_dir($targetDir)) {
+            $files = scandir($targetDir);
+            foreach ($files as $file) {
+                if ($file === '.' || $file === '..') continue;
+                
+                $fullPath = $targetDir . '/' . $file;
+                $isDir = is_dir($fullPath);
+                $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+                
+                $items[] = [
+                    'name' => $file,
+                    'isDir' => $isDir,
+                    'size' => $isDir ? 0 : filesize($fullPath),
+                    'ext' => $ext,
+                    'url' => '/uploads/' . ($subDir ? $subDir . '/' : '') . $file,
+                    'path' => ($subDir ? $subDir . '/' : '') . $file
+                ];
+            }
+        }
+
+        // Sort: naturally, folders first
+        usort($items, function($a, $b) {
+            if ($a['isDir'] && !$b['isDir']) return -1;
+            if (!$a['isDir'] && $b['isDir']) return 1;
+            return strcasecmp($a['name'], $b['name']);
+        });
+
+        $this->view('admin/media', [
+            'items' => $items,
+            'currentDir' => $subDir,
+            'breadcrumbs' => array_filter(explode('/', trim($subDir, '/')))
+        ]);
+    }
+
+    public function uploadMedia()
+    {
+        if (!isset($_SESSION['user_id']) || $_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            exit;
+        }
+
+        if (isset($_FILES['file'])) {
             $file = $_FILES['file'];
-            $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
-            $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-
-            if (!in_array($extension, $allowedExtensions)) {
-                header('Content-Type: application/json');
-                echo json_encode(['success' => false, 'message' => 'Invalid file type. Only images are allowed.']);
-                exit;
-            }
-
-            // Check mime type for extra security
-            $finfo = finfo_open(FILEINFO_MIME_TYPE);
-            $mimeType = finfo_file($finfo, $file['tmp_name']);
-            finfo_close($finfo);
-
-            if (strpos($mimeType, 'image/') !== 0) {
-                header('Content-Type: application/json');
-                echo json_encode(['success' => false, 'message' => 'Invalid file content.']);
-                exit;
-            }
-
-            $uploadDir = __DIR__ . '/../../public/uploads/';
+            $targetPath = $_POST['path'] ?? '';
+            $targetPath = str_replace(['..', '\\'], ['', '/'], ltrim($targetPath, '/'));
+            
+            $uploadBase = realpath(__DIR__ . '/../../public/uploads/');
+            $uploadDir = $uploadBase . ($targetPath ? DIRECTORY_SEPARATOR . $targetPath : '');
 
             if (!is_dir($uploadDir)) {
                 mkdir($uploadDir, 0755, true);
             }
 
-            $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
-            $filename = uniqid('media_') . '.' . $extension;
-            $targetPath = $uploadDir . $filename;
+            // Allowed: images and specified video formats
+            $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'mp4', 'webm', 'ogv', 'mov'];
+            $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
 
-            if (move_uploaded_file($file['tmp_name'], $targetPath)) {
+            if (!in_array($extension, $allowedExtensions)) {
                 header('Content-Type: application/json');
-                echo json_encode(['success' => true, 'url' => '/uploads/' . $filename]);
+                echo json_encode(['success' => false, 'message' => 'Invalid file type.']);
+                exit;
+            }
+
+            // Sanitized filename
+            $safeName = preg_replace('/[^a-zA-Z0-9.\-_]/', '_', $file['name']);
+            // Avoid collisions
+            if (file_exists($uploadDir . '/' . $safeName)) {
+                $baseName = pathinfo($safeName, PATHINFO_FILENAME);
+                $safeName = $baseName . '_' . time() . '.' . $extension;
+            }
+
+            $finalTarget = $uploadDir . '/' . $safeName;
+
+            if (move_uploaded_file($file['tmp_name'], $finalTarget)) {
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'success' => true, 
+                    'url' => '/uploads/' . ($targetPath ? $targetPath . '/' : '') . $safeName,
+                    'name' => $safeName
+                ]);
             } else {
                 header('Content-Type: application/json');
                 echo json_encode(['success' => false, 'message' => 'Upload failed.']);
@@ -936,7 +1026,109 @@ class AdminController extends BaseController
         }
 
         header('Content-Type: application/json');
-        echo json_encode(['success' => false, 'message' => 'Invalid request.']);
+        echo json_encode(['success' => false, 'message' => 'No file provided.']);
+        exit;
+    }
+
+    public function createMediaFolder()
+    {
+        if (!isset($_SESSION['user_id']) || $_SERVER['REQUEST_METHOD'] !== 'POST') exit;
+
+        $parent = $_POST['parent'] ?? '';
+        $name = $_POST['name'] ?? '';
+        
+        $parent = str_replace(['..', '\\'], ['', '/'], ltrim($parent, '/'));
+        $name = preg_replace('/[^a-zA-Z0-9.\-_]/', '_', $name);
+
+        if (empty($name)) {
+            header('Location: /backoffice/media?dir=' . urlencode($parent) . '&error=invalid_name');
+            exit;
+        }
+
+        $uploadBase = realpath(__DIR__ . '/../../public/uploads/');
+        $targetPath = $uploadBase . ($parent ? DIRECTORY_SEPARATOR . $parent : '') . DIRECTORY_SEPARATOR . $name;
+
+        if (is_dir($targetPath)) {
+            header('Location: /backoffice/media?dir=' . urlencode($parent) . '&error=folder_exists');
+        } else {
+            mkdir($targetPath, 0755, true);
+            header('Location: /backoffice/media?dir=' . urlencode($parent) . '&success=folder_created');
+        }
+        exit;
+    }
+
+    public function deleteMedia()
+    {
+        if (!isset($_SESSION['user_id']) || $_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            exit;
+        }
+
+        $path = $_POST['path'] ?? '';
+        $path = str_replace(['..', '\\'], ['', '/'], ltrim($path, '/'));
+        
+        $uploadBase = realpath(__DIR__ . '/../../public/uploads/');
+        $fullPath = realpath($uploadBase . DIRECTORY_SEPARATOR . $path);
+
+        // Security check
+        if ($fullPath && strpos($fullPath, $uploadBase) === 0 && $fullPath !== $uploadBase) {
+            if (is_dir($fullPath)) {
+                $this->recursiveDelete($fullPath);
+            } else {
+                unlink($fullPath);
+            }
+            header('Content-Type: application/json');
+            echo json_encode(['success' => true]);
+        } else {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => 'Invalid path']);
+        }
+        exit;
+    }
+
+    private function recursiveDelete($dir) {
+        $files = array_diff(scandir($dir), array('.','..'));
+        foreach ($files as $file) {
+            (is_dir("$dir/$file")) ? $this->recursiveDelete("$dir/$file") : unlink("$dir/$file");
+        }
+        return rmdir($dir);
+    }
+
+    public function renameMedia()
+    {
+        if (!isset($_SESSION['user_id']) || $_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            exit;
+        }
+
+        $oldPath = $_POST['oldPath'] ?? '';
+        $newName = $_POST['newName'] ?? '';
+
+        $oldPath = str_replace(['..', '\\'], ['', '/'], ltrim($oldPath, '/'));
+        $newName = preg_replace('/[^a-zA-Z0-9.\-_]/', '_', $newName);
+
+        $uploadBase = realpath(__DIR__ . '/../../public/uploads/');
+        $fullOldPath = realpath($uploadBase . DIRECTORY_SEPARATOR . $oldPath);
+        
+        if ($fullOldPath && strpos($fullOldPath, $uploadBase) === 0 && !empty($newName)) {
+            $parentDir = dirname($fullOldPath);
+            $ext = pathinfo($fullOldPath, PATHINFO_EXTENSION);
+            $targetName = $newName . ($ext ? '.' . $ext : '');
+            $fullNewPath = $parentDir . DIRECTORY_SEPARATOR . $targetName;
+
+            if (rename($fullOldPath, $fullNewPath)) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => true, 'newName' => $targetName]);
+            } else {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'message' => 'Rename failed']);
+            }
+        } else {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => 'Invalid request']);
+        }
         exit;
     }
 
@@ -1008,10 +1200,15 @@ class AdminController extends BaseController
                 // Default empty layout
                 $layout = [
                     'header' => ['sections' => [['type' => 'logo'], ['type' => 'menu']]],
-                    'main' => ['rows' => [['columns' => [['type' => 'text']]]]],
+                    'main' => ['rows' => [['columns' => [['type' => 'text', 'width' => 12]]]]],
                     'footer' => ['sections' => [['type' => 'text']]]
                 ];
                 $layoutJson = json_encode($layout);
+
+                if ($type === 'homepage') {
+                    // Exactly one homepage: demote others
+                    $db->query("UPDATE {$prefix}templates SET type = 'content' WHERE type = 'homepage'");
+                }
 
                 $stmt = $db->prepare("INSERT INTO {$prefix}templates (name, type, layout_json, is_active) VALUES (?, ?, ?, 0)");
                 $stmt->bind_param("sss", $name, $type, $layoutJson);
@@ -1069,18 +1266,39 @@ class AdminController extends BaseController
         }
 
         $id = (int) $id;
+        $name = $_POST['name'] ?? '';
+        $type = $_POST['type'] ?? 'content';
         $layoutJson = $_POST['layout_json'] ?? '';
 
-        if (!json_decode($layoutJson)) {
-            header("Location: /backoffice/templates/edit/$id?error=invalid_json");
+        if (empty($name) || !json_decode($layoutJson)) {
+            header("Location: /backoffice/templates/edit/$id?error=invalid_data");
             exit;
         }
 
         $db = Database::connect();
         $prefix = Database::getPrefix();
 
-        $stmt = $db->prepare("UPDATE {$prefix}templates SET layout_json = ? WHERE id = ?");
-        $stmt->bind_param("si", $layoutJson, $id);
+        // 1. Fetch current type
+        $res = $db->query("SELECT type FROM {$prefix}templates WHERE id = $id");
+        $tpl = $res->fetch_assoc();
+        
+        // 2. Homepage Validation: if changing from homepage to content, ensure others exist
+        if ($tpl['type'] === 'homepage' && $type === 'content') {
+            $countRes = $db->query("SELECT COUNT(*) as total FROM {$prefix}templates WHERE type = 'homepage'");
+            $countRow = $countRes->fetch_assoc();
+            if ($countRow['total'] <= 1) {
+                header("Location: /backoffice/templates/edit/$id?error=last_homepage");
+                exit;
+            }
+        }
+
+        // 3. Homepage Validation: if changing TO homepage, demote others
+        if ($type === 'homepage') {
+            $db->query("UPDATE {$prefix}templates SET type = 'content' WHERE type = 'homepage'");
+        }
+
+        $stmt = $db->prepare("UPDATE {$prefix}templates SET name = ?, type = ?, layout_json = ? WHERE id = ?");
+        $stmt->bind_param("sssi", $name, $type, $layoutJson, $id);
 
         if ($stmt->execute()) {
             header("Location: /backoffice/templates/edit/$id?saved=1");
@@ -1102,12 +1320,16 @@ class AdminController extends BaseController
         $prefix = Database::getPrefix();
         $id = (int) $id;
 
-        // Prevent deleting the primary Homepage template
-        $check = $db->query("SELECT name FROM {$prefix}templates WHERE id = $id");
+        // Homepage Validation: Don't delete the last homepage template
+        $check = $db->query("SELECT type FROM {$prefix}templates WHERE id = $id");
         if ($check && $row = $check->fetch_assoc()) {
-            if ($row['name'] === 'Homepage') {
-                header('Location: /backoffice/templates?error=cannot_delete_homepage');
-                exit;
+            if ($row['type'] === 'homepage') {
+                $countRes = $db->query("SELECT COUNT(*) as total FROM {$prefix}templates WHERE type = 'homepage'");
+                $countRow = $countRes->fetch_assoc();
+                if ($countRow['total'] <= 1) {
+                    header('Location: /backoffice/templates?error=cannot_delete_last_homepage');
+                    exit;
+                }
             }
         }
 

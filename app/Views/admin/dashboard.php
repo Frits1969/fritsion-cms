@@ -11,6 +11,7 @@ $welcome_desc = $lang['welcome_desc'] ?? 'Beheer je website eenvoudig en snel.';
 $pages_label = $lang['pages_label'] ?? "Pagina's";
 $media_files_label = $lang['media_files_label'] ?? 'Media Bestanden';
 $users_label = $lang['users_label'] ?? 'Gebruikers';
+$templates_label = $lang['templates_label'] ?? 'Templates';
 $latest_pages_title = $lang['latest_pages_title'] ?? "Laatst bewerkte pagina's";
 $no_other_pages_found = $lang['no_other_pages_found'] ?? "Geen andere pagina's gevonden.";
 $system_actions_title = $lang['system_actions_title'] ?? 'Systeem Acties';
@@ -89,8 +90,13 @@ $reset_install_btn = $lang['reset_install_btn'] ?? 'Herstart Installatie';
                     <div class="stat-label"><?= $pages_label ?></div>
                 </div>
                 <div class="stat-card">
+                    <div class="stat-icon">🎨</div>
+                    <div class="stat-value"><?= $templateCount ?? 0 ?></div>
+                    <div class="stat-label"><?= $templates_label ?></div>
+                </div>
+                <div class="stat-card">
                     <div class="stat-icon">🖼️</div>
-                    <div class="stat-value">0</div>
+                    <div class="stat-value"><?= $mediaCount ?? 0 ?></div>
                     <div class="stat-label"><?= $media_files_label ?></div>
                 </div>
                 <div class="stat-card">

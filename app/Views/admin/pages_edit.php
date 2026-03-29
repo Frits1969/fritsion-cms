@@ -280,12 +280,9 @@ $slug_tip = $slug_tip ?? "De 'slug' is het deel van de URL dat na de domeinnaam 
                 const template = await response.json();
                 currentTemplate = template;
 
-                if (template.type === 'homepage') {
-                    slugInput.value = '/';
-                    slugInput.readOnly = true;
-                } else {
-                    slugInput.readOnly = false;
-                }
+                // No longer forcing slug to '/' for homepage templates. 
+                // Any page can use any template; only the slug '/' determines if it's the home.
+                slugInput.readOnly = false;
 
                 // Show the refresh button and hint
                 document.getElementById('btn-refresh-template').style.display = 'inline-block';
@@ -321,6 +318,24 @@ $slug_tip = $slug_tip ?? "De 'slug' is het deel van de URL dat na de domeinnaam 
                 btn.disabled = false;
                 console.error('Error refreshing template:', error);
             }
+        }
+
+        function moveRow(ri, direction) {
+            if (!currentTemplate) return;
+            const layout = JSON.parse(currentTemplate.layout_json);
+            const rows = layout.main.rows;
+            const newIndex = ri + direction;
+            if (newIndex < 0 || newIndex >= rows.length) return;
+
+            // Swap rows
+            const temp = rows[ri];
+            rows[ri] = rows[newIndex];
+            rows[newIndex] = temp;
+
+            // Update template and re-render
+            currentTemplate.layout_json = JSON.stringify(layout);
+            isDirty = true;
+            renderVisualCanvas();
         }
 
         function renderVisualCanvas() {
@@ -367,24 +382,46 @@ $slug_tip = $slug_tip ?? "De 'slug' is het deel van de URL dat na de domeinnaam 
             if (!section) return '';
             let html = '';
 
-            if (type === 'header') {
-                section.sections.forEach((s, i) => {
-                    const align = i === 0 ? 'flex-start' : (i === 1 ? 'center' : 'flex-end');
-                    html += `<div class="vc-h-section" style="justify-content: ${align};">${renderVisualBlock(s.type, `${type}.sections.${i}`)}</div>`;
-                });
-            } else if (type === 'footer') {
-                section.sections.forEach((s, i) => {
-                    html += `<div>${renderVisualBlock(s.type, `${type}.sections.${i}`)}</div>`;
-                });
-            } else if (type === 'main') {
+            if (type === 'main') {
+                const gridGuide = '<div class="grid-guide"></div>';
+                html += `<div class="vc-main-grid" style="display: grid; grid-template-columns: repeat(12, 1fr); grid-auto-rows: min-content; gap: 80px 40px; position: relative;">`;
+                html += gridGuide;
                 section.rows.forEach((row, ri) => {
-                    html += `<div class="vc-row" style="display: grid; grid-template-columns: repeat(12, 1fr); gap: 40px; margin-bottom: 80px; align-items: center;">`;
+                    const isFirst = ri === 0;
+                    const isLast = ri === section.rows.length - 1;
+                    
                     row.columns.forEach((col, ci) => {
                         const width = col.width || Math.floor(12 / (row.columns.length || 1));
-                        html += `<div class="vc-col" style="grid-column: span ${width};">${renderVisualBlock(col.type, `main.rows.${ri}.columns.${ci}`)}</div>`;
+                        const rowSpan = col.rowSpan || 1;
+                        
+                        html += `<div class="vc-col" style="grid-column-end: span ${width}; grid-row: span ${rowSpan}; position: relative; z-index: 1;">`;
+                        
+                        // Row Actions (only on first column of each row)
+                        if (ci === 0) {
+                            html += `
+                                <div style="position:absolute; left:-60px; top:0; display:flex; flex-direction:column; gap:5px; z-index:100;">
+                                    <button type="button" onclick="moveRow(${ri}, -1)" ${isFirst ? 'disabled' : ''} style="width:30px; height:30px; border-radius:50%; border:1px solid #e2e8f0; background:#fff; cursor:pointer; opacity:${isFirst ? 0.3 : 1}; color:#64748b;">↑</button>
+                                    <button type="button" onclick="moveRow(${ri}, 1)" ${isLast ? 'disabled' : ''} style="width:30px; height:30px; border-radius:50%; border:1px solid #e2e8f0; background:#fff; cursor:pointer; opacity:${isLast ? 0.3 : 1}; color:#64748b;">↓</button>
+                                </div>
+                            `;
+                        }
+                        
+                        html += `${renderVisualBlock(col.type, `main.rows.${ri}.columns.${ci}`)}<span class="vc-dimensions">${width} × ${rowSpan}</span></div>`;
                     });
-                    html += `</div>`;
                 });
+                html += `</div>`;
+            } else {
+                // Header or Footer
+                const gridGuide = '<div class="grid-guide"></div>';
+                const areaHeight = section.height || (type === 'header' ? '90px' : '120px');
+                html += `<div class="vc-row" style="display: grid; grid-template-columns: repeat(12, 1fr); grid-auto-rows: min-content; gap: 40px; margin-bottom: 40px; align-items: center; position: relative; min-height: ${areaHeight === 'auto' ? 'initial' : areaHeight};">`;
+                html += gridGuide;
+                section.sections.forEach((sec, si) => {
+                    const width = sec.width || Math.floor(12 / (section.sections.length || 1));
+                    const rowSpan = sec.rowSpan || 1;
+                    html += `<div class="vc-col" style="grid-column: span ${width}; grid-row: span ${rowSpan}; position: relative; z-index: 1;">${renderVisualBlock(sec.type, `${type}.sections.${si}`)}<span class="vc-dimensions">${width} × ${rowSpan}</span></div>`;
+                });
+                html += `</div>`;
             }
             return html;
         }
@@ -393,6 +430,8 @@ $slug_tip = $slug_tip ?? "De 'slug' is het deel van de URL dat na de domeinnaam 
             const data = getDeepValue(getLangData(), path) || {};
             
             switch (type) {
+                case 'empty':
+                    return `<div style="border:1px dashed #cbd5e1; height:60px; display:flex; align-items:center; justify-content:center; color:#cbd5e1; font-weight:600; font-size:0.75rem; border-radius:12px;">LEEG</div>`;
                 case 'text':
                     return `
                         <div>
@@ -418,20 +457,34 @@ $slug_tip = $slug_tip ?? "De 'slug' is het deel van de URL dat na de domeinnaam 
                             <div style="margin-bottom:10px;">
                                 <input type="text" class="vc-input-transparent vc-cta-button" placeholder="Knop Tekst (bijv. Registreer Nu)" value="${data.button_text || ''}" oninput="updateData('${path}.button_text', this.value)" style="text-align:center; display:inline-block; max-width:250px;">
                             </div>
-                            <input type="text" class="vc-input-transparent" placeholder="Link (bijv. /contact)" value="${data.url || ''}" oninput="updateData('${path}.url', this.value)">
+                            <div style="display:flex; gap:10px; margin-top:5px;">
+                                <input type="text" class="vc-input-transparent" style="flex:1;" placeholder="Link (bijv. /contact)" value="${data.url || ''}" oninput="updateData('${path}.url', this.value)">
+                                <select class="form-select" style="width:auto; padding:4px 8px; font-size:0.8rem;" onchange="updateData('${path}.target', this.value)">
+                                    <option value="_self" ${data.target === '_self' ? 'selected' : ''}>Zelfde venster (_self)</option>
+                                    <option value="_blank" ${data.target === '_blank' ? 'selected' : ''}>Nieuw tabblad (_blank)</option>
+                                    <option value="_top" ${data.target === '_top' ? 'selected' : ''}>Bovenste frame (_top)</option>
+                                </select>
+                            </div>
                         </div>
                     `;
                 case 'logo':
                     if (siteSettings.hide_logo === '1') return '<div style="color:#cbd5e1; font-size:0.8rem; border:1px dashed #cbd5e1; padding:5px; text-align:center; border-radius:5px;">Logo (Verbergen ingeschakeld in instellingen)</div>';
                     const logoUrl = siteSettings.site_logo || '/assets/logo/logo_fritsion_cms.png';
                     return `
-                        <div style="display:flex; align-items:center; gap:10px;">
-                            <img src="${logoUrl}" class="vc-logo">
+                        <div style="display:flex; align-items:center; gap:10px; height:100%; width:100%;">
+                            <img src="${logoUrl}" class="vc-logo" style="max-height:100%; width:auto; object-fit:contain;">
                         </div>`;
                 case 'menu': 
                     return `
                         <div class="vc-nav">
                             <input type="text" class="vc-input-transparent" style="text-align:right;" placeholder="Home, Over ons, Contact (komma gescheiden)" value="${data.items || ''}" oninput="updateData('${path}.items', this.value)">
+                        </div>`;
+                case 'language':
+                    return `
+                        <div style="display:flex; gap:10px; align-items:center; padding:10px; border:1px dashed #eee; border-radius:8px; opacity:0.8;">
+                            <img src="/assets/flags/nl.svg" style="width:20px; border-radius:2px;">
+                            <img src="/assets/flags/en.svg" style="width:20px; border-radius:2px;">
+                            <span style="font-size:0.75rem; font-weight:600; color:#64748b; margin-left:5px;">Taal Selectie</span>
                         </div>`;
                 case 'usps': 
                     return `

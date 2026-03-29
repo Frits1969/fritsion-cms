@@ -39,7 +39,8 @@ function renderBlock($type, $path, $pageData, $settings)
             $title = $data['title'] ?? ($lang['msg_cta_title'] ?? 'Klaar om te starten?');
             $btnText = $data['button_text'] ?? ($lang['btn_register'] ?? 'Registeer nu');
             $url = $data['url'] ?? '#';
-            return '<div><h3>' . htmlspecialchars($title) . '</h3><a href="' . htmlspecialchars($url) . '" class="type-cta">' . htmlspecialchars($btnText) . '</a></div>';
+            $target = $data['target'] ?? '_self';
+            return '<div><h3>' . htmlspecialchars($title) . '</h3><a href="' . htmlspecialchars($url) . '" target="' . htmlspecialchars($target) . '" class="type-cta">' . htmlspecialchars($btnText) . '</a></div>';
 
         case 'logo':
             if (($settings['hide_logo'] ?? '0') === '1') {
@@ -57,6 +58,14 @@ function renderBlock($type, $path, $pageData, $settings)
                 $html .= '<a href="#" style="text-decoration:none; color:inherit; font-weight:600;">' . htmlspecialchars(trim($item)) . '</a>';
             }
             return $html . '</nav>';
+
+        case 'language':
+            $currentLang = $_SESSION['lang'] ?? 'nl';
+            $html = '<div class="lang-select-front" style="display:flex; gap:10px; align-items:center;">';
+            $html .= '<a href="?lang=nl" style="opacity:'.($currentLang === 'nl' ? '1' : '0.5').'; transition:opacity 0.2s;"><img src="/assets/flags/nl.svg" alt="NL" style="width:24px; height:auto; display:block; border-radius:3px;"></a>';
+            $html .= '<a href="?lang=en" style="opacity:'.($currentLang === 'en' ? '1' : '0.5').'; transition:opacity 0.2s;"><img src="/assets/flags/en.svg" alt="EN" style="width:24px; height:auto; display:block; border-radius:3px;"></a>';
+            $html .= '</div>';
+            return $html;
 
         case 'usps':
             $usps = [$data['usp_1'] ?? ($lang['usp_1_default'] ?? 'Snelheid'), $data['usp_2'] ?? ($lang['usp_2_default'] ?? 'Veiligheid'), $data['usp_3'] ?? ($lang['usp_3_default'] ?? 'Kwaliteit')];
@@ -86,6 +95,9 @@ function renderBlock($type, $path, $pageData, $settings)
         case 'map':
             $addr = $data['address'] ?? 'Locatie';
             return '<div style="background:#e0f2fe; height:300px; display:flex; align-items:center; justify-content:center; border-radius:24px; color:#0369a1; font-weight:600;">📍 Kaart: ' . htmlspecialchars($addr) . '</div>';
+
+        case 'empty':
+            return '';
 
         default:
             return ($lang['label_block'] ?? "Block") . ": $type";
@@ -141,18 +153,16 @@ function renderBlock($type, $path, $pageData, $settings)
         }
 
         .header-inner {
-            height: 80px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
             gap: 40px;
+            align-items: center;
         }
 
         .h-section {
             display: flex;
             align-items: center;
             gap: 20px;
-            flex: 1;
         }
 
         .logo {
@@ -273,6 +283,7 @@ function renderBlock($type, $path, $pageData, $settings)
 
         .footer-inner {
             display: grid;
+            grid-template-columns: repeat(12, 1fr);
             gap: 40px;
         }
 
@@ -301,34 +312,44 @@ function renderBlock($type, $path, $pageData, $settings)
 
     <?php if ($layout): ?>
         <header>
-            <div class="container header-inner">
+            <?php $headerHeight = $layout['header']['height'] ?? '90px'; ?>
+            <div class="container header-inner" style="display: grid; grid-template-columns: repeat(12, 1fr); grid-auto-rows: min-content; gap: 20px 40px; min-height: <?= $headerHeight ?>; align-items: center;">
                 <?php foreach ($layout['header']['sections'] ?? [] as $i => $sec): ?>
+                    <?php 
+                        $width = $sec['width'] ?? floor(12 / (count($layout['header']['sections']) ?: 1)); 
+                        $rowSpan = $sec['rowSpan'] ?? 1;
+                    ?>
                     <div class="h-section"
-                        style="justify-content: <?= $i === 0 ? 'flex-start' : ($i === 1 ? 'center' : 'flex-end') ?>;">
+                        style="grid-column: span <?= $width ?>; grid-row: span <?= $rowSpan ?>; display: flex; align-items: center; justify-content: <?= $width == 12 ? 'center' : ($i % 3 === 0 ? 'flex-start' : ($i % 3 === 1 ? 'center' : 'flex-end')) ?>;">
                         <?= renderBlock($sec['type'], "header.sections.$i", $pageData, $settings) ?>
                     </div>
                 <?php endforeach; ?>
             </div>
         </header>
 
-        <main class="container">
+        <main class="container" style="display: grid; grid-template-columns: repeat(12, 1fr); grid-auto-rows: min-content; gap: 80px 40px; margin-bottom: 80px;">
             <?php foreach ($layout['main']['rows'] ?? [] as $ri => $row): ?>
-                <div class="row" style="display: grid; grid-template-columns: repeat(12, 1fr); gap: 40px; margin-bottom: 80px; align-items: center;">
-                    <?php foreach ($row['columns'] ?? [] as $ci => $col): ?>
-                        <?php $width = $col['width'] ?? floor(12 / (count($row['columns']) ?: 1)); ?>
-                        <div class="col block-<?= $col['type'] ?>" style="grid-column: span <?= $width ?>;">
-                            <?= renderBlock($col['type'], "main.rows.$ri.columns.$ci", $pageData, $settings) ?>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
+                <?php foreach ($row['columns'] ?? [] as $ci => $col): ?>
+                    <?php 
+                        $width = $col['width'] ?? floor(12 / (count($row['columns']) ?: 1)); 
+                        $rowSpan = $col['rowSpan'] ?? 1;
+                    ?>
+                    <div class="col block-<?= $col['type'] ?>" style="grid-column: span <?= $width ?>; grid-row: span <?= $rowSpan ?>;">
+                        <?= renderBlock($col['type'], "main.rows.$ri.columns.$ci", $pageData, $settings) ?>
+                    </div>
+                <?php endforeach; ?>
             <?php endforeach; ?>
         </main>
 
         <footer>
-            <div class="container footer-inner"
-                style="grid-template-columns: repeat(<?= count($layout['footer']['sections'] ?? []) ?>, 1fr);">
+            <?php $footerHeight = $layout['footer']['height'] ?? '120px'; ?>
+            <div class="container footer-inner" style="display: grid; grid-template-columns: repeat(12, 1fr); grid-auto-rows: min-content; gap: 20px 40px; min-height: <?= $footerHeight ?>;">
                 <?php foreach ($layout['footer']['sections'] ?? [] as $i => $sec): ?>
-                    <div class="f-section">
+                    <?php 
+                        $width = $sec['width'] ?? floor(12 / (count($layout['footer']['sections']) ?: 1)); 
+                        $rowSpan = $sec['rowSpan'] ?? 1;
+                    ?>
+                    <div class="f-section" style="grid-column: span <?= $width ?>; grid-row: span <?= $rowSpan ?>; display: flex; flex-direction: column; justify-content: flex-start;">
                         <?= renderBlock($sec['type'], "footer.sections.$i", $pageData, $settings) ?>
                     </div>
                 <?php endforeach; ?>

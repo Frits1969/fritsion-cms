@@ -78,6 +78,6 @@ CREATE TABLE IF NOT EXISTS fcms_templates (
 
 -- Default Templates
 REPLACE INTO fcms_templates (name, type, layout_json, is_active, icon, preview_type) VALUES 
-('Homepage', 'homepage', '{"header":{"sections":[{"type":"logo"},{"type":"menu"},{"type":"cta"}]},"main":{"rows":[{"columns":[{"type":"text"},{"type":"image"}]}]},"footer":{"sections":[{"type":"text"},{"type":"socials"}]}}', 1, '🏠', 'usps');
+('Homepage', 'homepage', '{"header":{"sections":[{"type":"logo"},{"type":"menu"},{"type":"cta"}]},"main":{"rows":[{"columns":[{"type":"text","width":6},{"type":"image","width":6}]}]},"footer":{"sections":[{"type":"text"},{"type":"socials"}]}}', 1, '🏠', 'usps');
 
 

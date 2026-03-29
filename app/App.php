@@ -53,8 +53,11 @@ class App
 
         $selected = $_SESSION['lang'] ?? $defaultLang;
 
+        $uri = $_SERVER['REQUEST_URI'] ?? '/';
+        $context = (strpos($uri, '/backoffice') === 0) ? 'admin' : 'front';
+
         // taalbestand laden
-        $lang = Language::load($selected);
+        $lang = Language::load($selected, $context);
         $GLOBALS['lang'] = $lang; // Make it globally available for now
 
         // Check if already installed
@@ -123,6 +126,14 @@ class App
                     $controller->getTemplate($matches[1]);
                 } elseif ($uri === '/backoffice/media/upload') {
                     $controller->uploadMedia();
+                } elseif ($uri === '/backoffice/media') {
+                    $controller->media();
+                } elseif ($uri === '/backoffice/media/create-folder') {
+                    $controller->createMediaFolder();
+                } elseif ($uri === '/backoffice/media/delete') {
+                    $controller->deleteMedia();
+                } elseif ($uri === '/backoffice/media/rename') {
+                    $controller->renameMedia();
                 } else {
                     $controller->index();
                 }

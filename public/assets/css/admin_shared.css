@@ -504,7 +504,8 @@ input:checked + .slider:before { transform: translateX(26px); }
 .template-card:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05); border-color: rgba(232, 24, 106, 0.2); }
 .template-card.selected { border-color: var(--accent-pink); background: rgba(232, 24, 106, 0.01); box-shadow: 0 10px 30px rgba(232, 24, 106, 0.08); }
 
-.preview-container { width: 100%; height: 140px; background: var(--wf-bg); border-radius: 12px; margin-bottom: 20px; overflow: hidden; display: flex; flex-direction: column; padding: 8px; gap: 4px; border: 1px solid rgba(0, 0, 0, 0.05); }
+.preview-container { width: 100%; height: 140px; background: var(--wf-bg); border-radius: 12px; margin-bottom: 20px; overflow: hidden; display: flex; flex-direction: column; padding: 8px; gap: 4px; border: 1px solid rgba(0, 0, 0, 0.05); position: relative; }
+.preview-container::after { content: ''; position: absolute; inset: 0; background-image: linear-gradient(to right, rgba(255,255,255,0.1) 1px, transparent 1px); background-size: calc(100% / 12) 100%; pointer-events: none; z-index: 10; }
 .wf-rect { border-radius: 3px; background: var(--wf-block); opacity: 0.6; }
 .wf-header { height: 8px; width: 40%; background: var(--wf-block); margin-bottom: 4px; }
 .wf-hero { flex: 1; background: var(--wf-hero); display: flex; align-items: center; justify-content: center; position: relative; }
@@ -524,3 +525,30 @@ input:checked + .slider:before { transform: translateX(26px); }
 .submenu-item { display: block; padding: 10px 15px; color: #64748b; text-decoration: none; font-size: 0.85rem; border-radius: 8px; transition: all 0.2s; margin-left: 10px; }
 .submenu-item:hover, .submenu-item.active { color: var(--accent-pink); background: rgba(232, 24, 106, 0.03); }
 .submenu-item.active { font-weight: 700; background: rgba(232, 24, 106, 0.06); }
+
+/* Grid Guidelines & Dimensions */
+.grid-guide {
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+    pointer-events: none;
+    background-image: 
+        linear-gradient(to right, rgba(0,0,0,0.06) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(0,0,0,0.06) 1px, transparent 1px);
+    background-size: calc(100% / 12) 100%, 100% 80px;
+}
+
+.pv-dimensions, .vc-dimensions {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    font-size: 0.55rem;
+    color: #94a3b8;
+    background: rgba(0,0,0,0.03);
+    padding: 1px 3px;
+    border-radius: 3px;
+    font-weight: 700;
+    z-index: 20;
+}
+
+.vc-col { position: relative; }

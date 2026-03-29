@@ -93,10 +93,7 @@ $btn_add_template = $lang['btn_add_template'] ?? 'Template toevoegen';
                         <?php foreach ($templates as $tpl): ?>
                             <?php 
                                 $url = "/backoffice/templates/edit/" . $tpl['id'];
-                                if ($tpl['type'] === 'homepage' && $tpl['name'] === 'Homepage') {
-                                    $url = "/backoffice/templates/homepage";
-                                }
-                                $isHomepageTemplate = ($tpl['name'] === 'Homepage');
+                                $isHomepageTemplate = ($tpl['type'] === 'homepage');
                             ?>
                             <tr>
                                 <td style="font-weight: 600;">
@@ -112,7 +109,7 @@ $btn_add_template = $lang['btn_add_template'] ?? 'Template toevoegen';
                                 </td>
                                 <td>
                                     <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #64748b;">
-                                        <?= $tpl['type'] ?>
+                                        <?= $tpl['type'] === 'content' ? ($lang['option_content_page'] ?? 'Vervolgpagina') : ($lang['nav_homepage'] ?? 'Homepage') ?>
                                     </span>
                                 </td>
                                 <td>
@@ -127,7 +124,7 @@ $btn_add_template = $lang['btn_add_template'] ?? 'Template toevoegen';
                                         <a href="<?= $url ?>" class="btn-secondary" title="<?= $lang['btn_edit_title'] ?? 'Muteren' ?>">
                                             <span>✏️</span>
                                         </a>
-                                        <?php if (!$isHomepageTemplate): ?>
+                                        <?php if ($tpl['type'] !== 'homepage'): ?>
                                             <a href="/backoffice/templates/delete/<?= $tpl['id'] ?>" class="btn-secondary btn-danger" 
                                                onclick="return confirm('<?= $lang['confirm_delete_template'] ?? 'Weet u zeker dat u dit template wilt verwijderen?' ?>')">
                                                 <span>🗑️</span>

@@ -26,6 +26,10 @@ $nav_back_to_dashboard = $lang['nav_back_to_dashboard'] ?? 'Terug naar Dashboard
     <link rel="icon" type="image/png" href="/assets/logo/logo_fritsion_cms_favicon.png">
     <link rel="shortcut icon" href="/assets/logo/logo_fritsion_cms_favicon.ico">
     <link rel="stylesheet" href="/assets/css/admin_shared.css">
+        <style>
+            .pv-empty { background: rgba(0,0,0,0.02) !important; border: 1px dashed rgba(0,0,0,0.1) !important; color: rgba(0,0,0,0.3) !important; }
+            .pv-empty .pv-col-icon { opacity: 0.2; filter: grayscale(1); }
+        </style>
 </head>
 
 <body>
@@ -34,7 +38,7 @@ $nav_back_to_dashboard = $lang['nav_back_to_dashboard'] ?? 'Terug naar Dashboard
     <div class="main-wrapper">
         <header class="topbar">
             <div style="font-weight: 600; color: var(--text-muted);">
-                <?= $nav_templates ?> / <?= $pageType === 'content' ? ($lang['option_content_page'] ?? 'Contentpagina') : ($lang['badge_homepage'] ?? 'Homepage') ?>
+                <?= $nav_templates ?> / <?= htmlspecialchars($template['name']) ?>
             </div>
 
             <div class="topbar-actions">
@@ -76,11 +80,33 @@ $nav_back_to_dashboard = $lang['nav_back_to_dashboard'] ?? 'Terug naar Dashboard
         <div class="config-container">
             <!-- Form Side -->
             <div class="config-panel" id="configPanel">
+                <?php if (isset($_GET['error'])): ?>
+                    <div class="alert alert-error" style="margin-bottom: 20px;">
+                        <span>⚠️</span> 
+                        <?= $lang['error_' . $_GET['error']] ?? 'Er is een fout opgetreden: ' . htmlspecialchars($_GET['error']) ?>
+                    </div>
+                <?php endif; ?>
+
+                <div class="config-section" id="section-template">
+                    <h2><span>⚙️</span> <?= $lang['title_template_settings'] ?? 'Template Instellingen' ?></h2>
+                    <div class="form-group">
+                        <label class="form-label"><?= $lang['label_template_name'] ?? 'Benaming' ?></label>
+                        <input type="text" class="form-input" id="tplName" value="<?= htmlspecialchars($template['name']) ?>" placeholder="bijv. Homepage Winter">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label"><?= $lang['label_type_caps'] ?? 'Type' ?></label>
+                        <select class="form-select" id="tplType">
+                            <option value="content" <?= $template['type'] === 'content' ? 'selected' : '' ?>><?= $lang['option_content_page'] ?? 'Inhoudspagina' ?></option>
+                            <option value="homepage" <?= $template['type'] === 'homepage' ? 'selected' : '' ?>><?= $lang['option_homepage_variant'] ?? 'Homepagina Variant' ?></option>
+                        </select>
+                    </div>
+                </div>
+
                 <div class="config-section" id="section-header">
                     <h2><span>🎨</span> <?= $lang['title_header'] ?? 'Header' ?></h2>
                     <div class="form-group">
                         <label class="form-label"><?= $lang['label_amount_sections'] ?? 'Aantal vlakken' ?></label>
-                        <input type="number" class="form-input" id="headerCount" min="1" max="5"
+                        <input type="number" class="form-input" id="headerCount" min="1" max="12"
                             onchange="updateHeaderCount(this.value)">
                     </div>
                     <div id="headerSections"></div>
@@ -96,7 +122,7 @@ $nav_back_to_dashboard = $lang['nav_back_to_dashboard'] ?? 'Terug naar Dashboard
                     <h2><span>🏁</span> <?= $lang['title_footer'] ?? 'Footer' ?></h2>
                     <div class="form-group">
                         <label class="form-label"><?= $lang['label_amount_sections'] ?? 'Aantal vlakken' ?></label>
-                        <input type="number" class="form-input" id="footerCount" min="1" max="5"
+                        <input type="number" class="form-input" id="footerCount" min="1" max="12"
                             onchange="updateFooterCount(this.value)">
                     </div>
                     <div id="footerSections"></div>
@@ -121,6 +147,8 @@ $nav_back_to_dashboard = $lang['nav_back_to_dashboard'] ?? 'Terug naar Dashboard
         ?>
         <form action="<?= $formAction ?>" method="POST" id="layoutForm">
             <input type="hidden" name="layout_json" id="layoutJsonInput">
+            <input type="hidden" name="name" id="nameInput">
+            <input type="hidden" name="type" id="typeInput">
             <div class="save-bar">
                 <button type="button" class="btn-save" onclick="saveLayout()"><?= $lang['btn_save_config'] ?? 'Configuratie Opslaan' ?></button>
             </div>
@@ -156,9 +184,10 @@ $nav_back_to_dashboard = $lang['nav_back_to_dashboard'] ?? 'Terug naar Dashboard
             { id: 'products', name: '<?= $lang['type_products'] ?? 'Productoverzicht' ?>', icon: '🛍️' },
             { id: 'map', name: '<?= $lang['type_map'] ?? 'Kaart' ?>', icon: '📍' },
             { id: 'html', name: '<?= $lang['type_html'] ?? 'Custom HTML' ?>', icon: '💻' },
+            { id: 'language', name: '<?= $lang['type_language'] ?? 'Taal Selectie' ?>', icon: '🌐' },
             { id: 'logo', name: '<?= $lang['type_logo'] ?? 'Logo' ?>', icon: '✨' },
             { id: 'menu', name: '<?= $lang['type_menu'] ?? 'Menu' ?>', icon: '☰' },
-            { id: 'socials', name: '<?= $lang['type_socials'] ?? 'Social Icons' ?>', icon: '📱' }
+            { id: 'empty', name: '<?= $lang['type_empty'] ?? 'Leeg Vlak' ?>', icon: '⬜' }
         ];
 
         const labels = {
@@ -206,16 +235,22 @@ $nav_back_to_dashboard = $lang['nav_back_to_dashboard'] ?? 'Terug naar Dashboard
         // --- State Management ---
         function updateHeaderCount(val) {
             val = parseInt(val);
-            while (state.header.sections.length < val) state.header.sections.push({ type: 'text' });
+            if (val < 1) val = 1;
+            const defaultWidth = 4; // default to a third
+            while (state.header.sections.length < val) state.header.sections.push({ type: 'logo', width: defaultWidth });
             while (state.header.sections.length > val) state.header.sections.pop();
+            
             renderConfig();
             renderPreview();
         }
 
         function updateFooterCount(val) {
             val = parseInt(val);
-            while (state.footer.sections.length < val) state.footer.sections.push({ type: 'text' });
+            if (val < 1) val = 1;
+            const defaultWidth = 4; // default to a third
+            while (state.footer.sections.length < val) state.footer.sections.push({ type: 'text', width: defaultWidth });
             while (state.footer.sections.length > val) state.footer.sections.pop();
+
             renderConfig();
             renderPreview();
         }
@@ -225,8 +260,13 @@ $nav_back_to_dashboard = $lang['nav_back_to_dashboard'] ?? 'Terug naar Dashboard
             renderPreview();
         }
 
+        function updateAreaRowSpan(area, index, rowSpan) {
+            state[area].sections[index].rowSpan = parseInt(rowSpan);
+            renderPreview();
+        }
+
         function addRow() {
-            state.main.rows.push({ columns: [{ type: 'text', width: 12 }] });
+            state.main.rows.push({ columns: [{ type: 'text', width: 12, rowSpan: 1 }], height: '90px' });
             renderConfig();
             renderPreview();
         }
@@ -259,7 +299,6 @@ $nav_back_to_dashboard = $lang['nav_back_to_dashboard'] ?? 'Terug naar Dashboard
             count = parseInt(count);
             let row = state.main.rows[rowIndex];
             
-            // Adjust columns
             while (row.columns.length < count) {
                 row.columns.push({ type: 'text', width: 1 });
             }
@@ -267,13 +306,11 @@ $nav_back_to_dashboard = $lang['nav_back_to_dashboard'] ?? 'Terug naar Dashboard
                 row.columns.pop();
             }
 
-            // Recalculate widths to fit 12 columns evenly if possible
             const defaultWidth = Math.floor(12 / count);
             row.columns.forEach((col, i) => {
                 col.width = defaultWidth;
             });
 
-            // Distribute remainder to the last column
             const currentSum = row.columns.reduce((sum, col) => sum + col.width, 0);
             if (currentSum < 12 && row.columns.length > 0) {
                 row.columns[row.columns.length - 1].width += (12 - currentSum);
@@ -288,21 +325,68 @@ $nav_back_to_dashboard = $lang['nav_back_to_dashboard'] ?? 'Terug naar Dashboard
             renderPreview();
         }
 
+        function updateColRowSpan(rowIndex, colIndex, rowSpan) {
+            state.main.rows[rowIndex].columns[colIndex].rowSpan = parseInt(rowSpan);
+            renderPreview();
+        }
+
         function updateColType(rowIndex, colIndex, type) {
             state.main.rows[rowIndex].columns[colIndex].type = type;
+            renderPreview();
+        }
+
+        function updateAreaHeight(area, val) {
+            state[area].height = val;
+            renderPreview();
+        }
+
+        function updateRowHeight(rowIndex, val) {
+            state.main.rows[rowIndex].height = val;
             renderPreview();
         }
 
         // --- Rendering ---
         function renderConfig() {
             // Header Sections
-            let hHtml = '';
+            let hHtml = `
+                <div class="form-group" style="border-bottom: 1px solid var(--glass-border); padding-bottom: 15px; margin-bottom: 15px;">
+                    <label class="form-label">${labels.height || 'Hoogte'}</label>
+                    <div style="display:flex; gap:10px;">
+                        <input type="text" class="form-input" style="flex:1;" placeholder="Bijv. 90px of auto" value="${state.header.height || '90px'}" oninput="updateAreaHeight('header', this.value)">
+                        <select class="form-select" style="width:auto;" onchange="this.previousElementSibling.value = this.value; updateAreaHeight('header', this.value);">
+                            <option value="">-- Kies --</option>
+                            <option value="90px">90px</option>
+                            <option value="120px">120px</option>
+                            <option value="auto">Auto</option>
+                        </select>
+                    </div>
+                </div>
+            `;
             state.header.sections.forEach((sec, i) => {
-                hHtml += `<div class="form-group">
-                    <label class="form-label">${labels.vlakContent.replace('%d', i + 1)}</label>
-                    <select class="form-select" id="config-header-${i}" onchange="updateSectionType('header', ${i}, this.value)">
-                        ${renderOptions(sec.type)}
-                    </select>
+                const currentWidth = sec.width || Math.floor(12 / (state.header.sections.length || 1));
+                const otherSum = state.header.sections.reduce((sum, s, idx) => idx !== i ? sum + (s.width || Math.floor(12 / (state.header.sections.length || 1))) : sum, 0);
+                const maxWidth = 12 - otherSum;
+
+                hHtml += `<div class="form-group row-item">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <label class="form-label">${labels.vlakContent.replace('%d', i + 1)}</label>
+                        <div style="display:flex; align-items:center; gap:5px;">
+                            <span style="font-size:1.4rem; line-height:1;">↔️</span>
+                            <select class="form-select" style="width:60px; padding:2px 4px; font-size:0.75rem;" onchange="state.header.sections[${i}].width = parseInt(this.value); renderPreview();">
+                                ${[1,2,3,4,5,6,7,8,9,10,11,12].map(w => `<option value="${w}" ${currentWidth == w ? 'selected' : ''}>${w}</option>`).join('')}
+                            </select>
+                            <span style="font-size:1.4rem; line-height:1; color:var(--text-muted); margin-left:5px;">↕️</span>
+                            <select class="form-select" style="width:50px; padding:2px 4px; font-size:0.75rem;" onchange="updateAreaRowSpan('header', ${i}, this.value)">
+                                ${[1,2,3,4,5,6,7,8,9,10,11,12].map(rs => `<option value="${rs}" ${sec.rowSpan == rs ? 'selected' : ''}>${rs}</option>`).join('')}
+                            </select>
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:5px;">
+                        <select class="form-select" id="config-header-${i}" onchange="updateSectionType('header', ${i}, this.value)" style="flex:1;">
+                            ${renderOptions(sec.type)}
+                        </select>
+                        <button class="btn-action remove" onclick="updateSectionType('header', ${i}, 'empty'); renderConfig();" title="Item leegmaken" style="padding: 0 8px;">🗑️</button>
+                    </div>
                 </div>`;
             });
             document.getElementById('headerSections').innerHTML = hHtml;
@@ -319,11 +403,23 @@ $nav_back_to_dashboard = $lang['nav_back_to_dashboard'] ?? 'Terug naar Dashboard
                         <button class="btn-action" title="${labels.moveDown}" onclick="moveRow(${ri}, 1)" ${isLast ? 'disabled' : ''}>↓</button>
                         <button class="btn-action remove" title="${labels.remove}" onclick="removeRow(${ri})">✖</button>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">${labels.rowColumns.replace('%d', ri + 1)}</label>
-                        <select class="form-select" onchange="updateColCount(${ri}, this.value)">
-                            ${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(n => `<option value="${n}" ${row.columns.length == n ? 'selected' : ''}>${n} ${n > 1 ? labels.columns : labels.column}</option>`).join('')}
-                        </select>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-bottom:15px;">
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label class="form-label">${labels.rowColumns.replace('%d', ri + 1)}</label>
+                            <select class="form-select" onchange="updateColCount(${ri}, this.value)">
+                                ${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(n => `<option value="${n}" ${row.columns.length == n ? 'selected' : ''}>${n} ${n > 1 ? labels.columns : labels.column}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label class="form-label">${labels.height || 'Hoogte'}</label>
+                            <div style="display:flex; gap:5px;">
+                                <input type="text" class="form-input" style="flex:1; padding: 4px 8px; font-size: 0.85rem;" placeholder="90px" value="${row.height || '90px'}" oninput="updateRowHeight(${ri}, this.value)">
+                                <select class="form-select" style="width:auto; padding:0 4px;" onchange="this.previousElementSibling.value = this.value; updateRowHeight(${ri}, this.value);">
+                                    <option value="90px">90px</option>
+                                    <option value="auto">Auto</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                     <div class="cols-container">
                         ${row.columns.map((col, ci) => {
@@ -336,15 +432,22 @@ $nav_back_to_dashboard = $lang['nav_back_to_dashboard'] ?? 'Terug naar Dashboard
                                     <div style="display:flex; justify-content:space-between; align-items:center;">
                                         <label class="form-label" style="font-size: 0.75rem;">${labels.columnType.replace('%d', ci + 1)}</label>
                                         <div style="display:flex; align-items:center; gap:5px;">
-                                            <span style="font-size:0.7rem; color:var(--text-muted);">↔️</span>
+                                            <span style="font-size:1.4rem; line-height:1; color:var(--text-muted);">↔️</span>
                                             <select class="form-select" style="width:60px; padding:2px 4px; font-size:0.75rem;" onchange="updateColWidth(${ri}, ${ci}, this.value)">
-                                                ${[1,2,3,4,5,6,7,8,9,10,11,12].map(w => `<option value="${w}" ${currentWidth == w ? 'selected' : ''} ${w > maxWidth && w != currentWidth ? 'disabled' : ''}>${w}</option>`).join('')}
+                                                ${[1,2,3,4,5,6,7,8,9,10,11,12].map(w => `<option value="${w}" ${currentWidth == w ? 'selected' : ''}>${w}</option>`).join('')}
+                                            </select>
+                                            <span style="font-size:1.4rem; line-height:1; color:var(--text-muted); margin-left:5px;">↕️</span>
+                                            <select class="form-select" style="width:50px; padding:2px 4px; font-size:0.75rem;" onchange="updateColRowSpan(${ri}, ${ci}, this.value)">
+                                                ${([...Array(state.main.rows.length - ri).keys()].map(x => x + 1)).map(rs => `<option value="${rs}" ${col.rowSpan == rs ? 'selected' : ''}>${rs}</option>`).join('')}
                                             </select>
                                         </div>
                                     </div>
-                                    <select class="form-select" id="config-row-${ri}-col-${ci}" onchange="updateColType(${ri}, ${ci}, this.value)">
-                                        ${renderOptions(col.type)}
-                                    </select>
+                                    <div style="display:flex; gap:5px;">
+                                        <select class="form-select" id="config-row-${ri}-col-${ci}" onchange="updateColType(${ri}, ${ci}, this.value)" style="flex:1;">
+                                            ${renderOptions(col.type)}
+                                        </select>
+                                        <button class="btn-action remove" onclick="updateColType(${ri}, ${ci}, 'empty'); renderConfig();" title="Item leegmaken" style="padding: 0 8px;">🗑️</button>
+                                    </div>
                                 </div>
                             `;
                         }).join('')}
@@ -354,13 +457,45 @@ $nav_back_to_dashboard = $lang['nav_back_to_dashboard'] ?? 'Terug naar Dashboard
             document.getElementById('mainRows').innerHTML = mHtml;
 
             // Footer Sections
-            let fHtml = '';
+            let fHtml = `
+                <div class="form-group" style="border-bottom: 1px solid var(--glass-border); padding-bottom: 15px; margin-bottom: 15px;">
+                    <label class="form-label">${labels.height || 'Hoogte'}</label>
+                    <div style="display:flex; gap:10px;">
+                        <input type="text" class="form-input" style="flex:1;" placeholder="Bijv. 120px of auto" value="${state.footer.height || '120px'}" oninput="updateAreaHeight('footer', this.value)">
+                        <select class="form-select" style="width:auto;" onchange="this.previousElementSibling.value = this.value; updateAreaHeight('footer', this.value);">
+                            <option value="">-- Kies --</option>
+                            <option value="90px">90px</option>
+                            <option value="120px">120px</option>
+                            <option value="auto">Auto</option>
+                        </select>
+                    </div>
+                </div>
+            `;
             state.footer.sections.forEach((sec, i) => {
-                fHtml += `<div class="form-group">
-                    <label class="form-label">${labels.vlakContent.replace('%d', i + 1)}</label>
-                    <select class="form-select" id="config-footer-${i}" onchange="updateSectionType('footer', ${i}, this.value)">
-                        ${renderOptions(sec.type)}
-                    </select>
+                const currentWidth = sec.width || Math.floor(12 / (state.footer.sections.length || 1));
+                const otherSum = state.footer.sections.reduce((sum, s, idx) => idx !== i ? sum + (s.width || Math.floor(12 / (state.footer.sections.length || 1))) : sum, 0);
+                const maxWidth = 12 - otherSum;
+
+                fHtml += `<div class="form-group row-item">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <label class="form-label">${labels.vlakContent.replace('%d', i + 1)}</label>
+                        <div style="display:flex; align-items:center; gap:5px;">
+                            <span style="font-size:1.4rem; line-height:1;">↔️</span>
+                            <select class="form-select" style="width:60px; padding:2px 4px; font-size:0.75rem;" onchange="state.footer.sections[${i}].width = parseInt(this.value); renderPreview();">
+                                ${[1,2,3,4,5,6,7,8,9,10,11,12].map(w => `<option value="${w}" ${currentWidth == w ? 'selected' : ''}>${w}</option>`).join('')}
+                            </select>
+                            <span style="font-size:1.4rem; line-height:1; color:var(--text-muted); margin-left:5px;">↕️</span>
+                            <select class="form-select" style="width:50px; padding:2px 4px; font-size:0.75rem;" onchange="updateAreaRowSpan('footer', ${i}, this.value)">
+                                ${[1,2,3,4,5,6,7,8,9,10,11,12].map(rs => `<option value="${rs}" ${sec.rowSpan == rs ? 'selected' : ''}>${rs}</option>`).join('')}
+                            </select>
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:5px;">
+                        <select class="form-select" id="config-footer-${i}" onchange="updateSectionType('footer', ${i}, this.value)" style="flex:1;">
+                            ${renderOptions(sec.type)}
+                        </select>
+                        <button class="btn-action remove" onclick="updateSectionType('footer', ${i}, 'empty'); renderConfig();" title="Item leegmaken" style="padding: 0 8px;">🗑️</button>
+                    </div>
                 </div>`;
             });
             document.getElementById('footerSections').innerHTML = fHtml;
@@ -373,46 +508,78 @@ $nav_back_to_dashboard = $lang['nav_back_to_dashboard'] ?? 'Terug naar Dashboard
         }
 
         function renderPreview() {
+            const gridGuide = `<div class="grid-guide"></div>`;
+
             // Header Preview
             let hEl = document.getElementById('pvHeader');
-            hEl.style.gridTemplateColumns = `repeat(${state.header.sections.length}, 1fr)`;
-            hEl.innerHTML = state.header.sections.map((sec, i) => {
+            hEl.style.position = 'relative';
+            hEl.style.display = 'grid';
+            hEl.style.gridTemplateColumns = 'repeat(12, 1fr)';
+            hEl.style.gridAutoRows = 'minmax(60px, auto)';
+            hEl.style.gap = '10px';
+            hEl.style.minHeight = state.header.height || '90px';
+            hEl.innerHTML = gridGuide + state.header.sections.map((sec, i) => {
                 let info = contentTypes.find(ct => ct.id === sec.type);
-                return `<div class="pv-col pv-compact" id="pv-header-${i}" onclick="handlePreviewClick('header[${i}]', 'header-${i}')">
+                const width = sec.width || Math.floor(12 / (state.header.sections.length || 1));
+                const rowSpan = sec.rowSpan || 1;
+                const isEmpty = sec.type === 'empty';
+                return `<div class="pv-col pv-compact ${isEmpty ? 'pv-empty' : ''}" id="pv-header-${i}" style="grid-column: span ${width}; grid-row: span ${rowSpan}; position: relative; z-index: 1;" onclick="handlePreviewClick('header[${i}]', 'header-${i}')">
                         <span class="pv-col-icon">${info.icon}</span>
-                        <span class="pv-col-type">${info.name}</span>
+                        <span class="pv-col-type">${isEmpty ? 'LEEG' : info.name}</span>
+                        <span class="pv-dimensions">${width} × ${rowSpan}</span>
                     </div>`;
             }).join('');
 
             // Main Preview
-            document.getElementById('pvMain').innerHTML = state.main.rows.map((row, ri) => {
-                return `<div class="pv-row" style="display: grid; grid-template-columns: repeat(12, 1fr); gap: 10px;">
-                    ${row.columns.map((col, ci) => {
+            let mainEl = document.getElementById('pvMain');
+            mainEl.style.display = 'grid';
+            mainEl.style.gridTemplateColumns = 'repeat(12, 1fr)';
+            mainEl.style.gridAutoRows = 'minmax(80px, auto)';
+            mainEl.style.gap = '10px';
+            mainEl.style.position = 'relative';
+            
+            let mHtml = gridGuide;
+            state.main.rows.forEach((row, ri) => {
+                row.columns.forEach((col, ci) => {
                     let info = contentTypes.find(ct => ct.id === col.type);
                     const width = col.width || Math.floor(12 / (row.columns.length || 1));
-                    return `<div class="pv-col" id="pv-row-${ri}-col-${ci}" style="grid-column: span ${width};" onclick="handlePreviewClick('content[${ri}][${ci}]', 'row-${ri}-col-${ci}')">
+                    const rowSpan = col.rowSpan || 1;
+                    const isEmpty = col.type === 'empty';
+                    const style = `grid-column: span ${width}; grid-row: span ${rowSpan}; position: relative; z-index: 1; min-height: 50px;`;
+                    mHtml += `<div class="pv-col ${isEmpty ? 'pv-empty' : ''}" id="pv-row-${ri}-col-${ci}" style="${style}" onclick="handlePreviewClick('content[${ri}][${ci}]', 'row-${ri}-col-${ci}')">
                             <span class="pv-col-icon">${info.icon}</span>
-                            <span class="pv-col-type">${info.name}</span>
-                            <span style="position:absolute; bottom:2px; right:5px; font-size:0.6rem; opacity:0.5;">${width}/12</span>
+                            <span class="pv-col-type">${isEmpty ? 'LEEG' : info.name}</span>
+                            <span class="pv-dimensions">${width} × ${rowSpan}</span>
                         </div>`;
-                }).join('')}
-                </div>`;
-            }).join('');
+                });
+            });
+            mainEl.innerHTML = mHtml;
 
             // Footer Preview
             let fEl = document.getElementById('pvFooter');
-            fEl.style.gridTemplateColumns = `repeat(${state.footer.sections.length}, 1fr)`;
-            fEl.innerHTML = state.footer.sections.map((sec, i) => {
+            fEl.style.position = 'relative';
+            fEl.style.display = 'grid';
+            fEl.style.gridTemplateColumns = 'repeat(12, 1fr)';
+            fEl.style.gridAutoRows = 'minmax(80px, auto)';
+            fEl.style.gap = '10px';
+            fEl.style.minHeight = state.footer.height || '120px';
+            fEl.innerHTML = gridGuide + state.footer.sections.map((sec, i) => {
                 let info = contentTypes.find(ct => ct.id === sec.type);
-                return `<div class="pv-col pv-compact" id="pv-footer-${i}" onclick="handlePreviewClick('footer[${i}]', 'footer-${i}')">
+                const width = sec.width || Math.floor(12 / (state.footer.sections.length || 1));
+                const rowSpan = sec.rowSpan || 1;
+                const isEmpty = sec.type === 'empty';
+                return `<div class="pv-col pv-compact ${isEmpty ? 'pv-empty' : ''}" id="pv-footer-${i}" style="grid-column: span ${width}; grid-row: span ${rowSpan}; position: relative; z-index: 1;" onclick="handlePreviewClick('footer[${i}]', 'footer-${i}')">
                         <span class="pv-col-icon">${info.icon}</span>
-                        <span class="pv-col-type">${info.name}</span>
+                        <span class="pv-col-type">${isEmpty ? 'LEEG' : info.name}</span>
+                        <span class="pv-dimensions">${width} × ${rowSpan}</span>
                     </div>`;
             }).join('');
         }
 
         function saveLayout() {
             document.getElementById('layoutJsonInput').value = JSON.stringify(state);
+            document.getElementById('nameInput').value = document.getElementById('tplName').value;
+            document.getElementById('typeInput').value = document.getElementById('tplType').value;
             document.getElementById('layoutForm').submit();
         }
 
