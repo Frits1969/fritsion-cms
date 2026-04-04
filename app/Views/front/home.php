@@ -147,10 +147,12 @@ function makeResponsiveClass(array $item, int $rowSpan, string $prefix, array $d
     foreach ($deviceBreakpoints as $maxCols => [$media, $gridCols]) {
         $span = calcItemSpan($item, $maxCols);
         if ($span === 0) {
-            $cssRules[] = "@media ($media) { .$cls { display: none !important; } }";
+            // display:none + grid-column:1/span 1 zodat het item
+            // geen lege ruimte achterlaat in het CSS Grid.
+            $cssRules[] = "@media ($media) { .$cls { display: none !important; grid-column: 1 / span 1; grid-row: 1 / span 1; } }";
         } else {
             $safeSpan  = min($span, $gridCols);
-            $cssRules[] = "@media ($media) { .$cls { grid-column: span $safeSpan; grid-row: span $rowSpan; } }";
+            $cssRules[] = "@media ($media) { .$cls { display: revert; grid-column: span $safeSpan; grid-row: span $rowSpan; } }";
         }
     }
     return $cls;
@@ -186,6 +188,7 @@ foreach ($layout['footer']['sections'] ?? [] as $i => $sec) {
     <link rel="icon" type="image/png" href="/assets/logo/logo_fritsion_cms_favicon.png">
     <link rel="shortcut icon" href="/assets/logo/logo_fritsion_cms_favicon.ico">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Outfit:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/assets/css/grid.css">
     <style>
         :root {
             --primary: #3B2A8C;
