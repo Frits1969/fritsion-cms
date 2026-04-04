@@ -147,12 +147,12 @@ function makeResponsiveClass(array $item, int $rowSpan, string $prefix, array $d
     foreach ($deviceBreakpoints as $maxCols => [$media, $gridCols]) {
         $span = calcItemSpan($item, $maxCols);
         if ($span === 0) {
-            // display:none + grid-column:1/span 1 zodat het item
-            // geen lege ruimte achterlaat in het CSS Grid.
-            $cssRules[] = "@media ($media) { .$cls { display: none !important; grid-column: 1 / span 1; grid-row: 1 / span 1; } }";
+            // display:none haalt het item volledig uit de CSS Grid-flow.
+            $cssRules[] = "@media ($media) { .$cls { display: none !important; } }";
         } else {
             $safeSpan  = min($span, $gridCols);
-            $cssRules[] = "@media ($media) { .$cls { display: revert; grid-column: span $safeSpan; grid-row: span $rowSpan; } }";
+            // Geen display override — laat het grid-item zijn standaard display behouden.
+            $cssRules[] = "@media ($media) { .$cls { grid-column: span $safeSpan; grid-row: span $rowSpan; } }";
         }
     }
     return $cls;
@@ -204,7 +204,7 @@ foreach ($layout['footer']['sections'] ?? [] as $i => $sec) {
         .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
 
         /* ── Header ──────────────────────────────────────────── */
-        header { background: #fff; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 100; }
+        header { background: #fff; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 100; max-height: 100dvh; overflow-y: auto; }
         .header-inner { display: grid; gap: 20px 40px; align-items: center; }
         @media (min-width: 1536px)                         { .header-inner { grid-template-columns: repeat(12, 1fr); } }
         @media (max-width: 1535px) and (min-width: 1280px) { .header-inner { grid-template-columns: repeat(4,  1fr); } }
