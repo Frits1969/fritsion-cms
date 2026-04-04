@@ -201,10 +201,11 @@ foreach ($layout['footer']['sections'] ?? [] as $i => $sec) {
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
 
-        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        @media (max-width: 1240px) { .container { padding: 0 16px; } }
 
         /* ── Header ──────────────────────────────────────────── */
-        header { background: #fff; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 100; max-height: 100dvh; overflow-y: auto; }
+        header { background: #fff; border-bottom: 1px solid #e2e8f0; }
         .header-inner { display: grid; gap: 20px 40px; align-items: center; }
         @media (min-width: 1536px)                         { .header-inner { grid-template-columns: repeat(12, 1fr); } }
         @media (max-width: 1535px) and (min-width: 1280px) { .header-inner { grid-template-columns: repeat(4,  1fr); } }
@@ -214,7 +215,7 @@ foreach ($layout['footer']['sections'] ?? [] as $i => $sec) {
         .h-section { display: flex; align-items: center; gap: 20px; }
 
         /* ── Main ────────────────────────────────────────────── */
-        main.grid-main { display: grid; gap: 80px 40px; margin-bottom: 80px; padding: 60px 20px; }
+        main.grid-main { display: grid; gap: 80px 40px; margin-bottom: 80px; padding: 60px 0; }
         @media (min-width: 1536px)                         { main.grid-main { grid-template-columns: repeat(12, 1fr); } }
         @media (max-width: 1535px) and (min-width: 1280px) { main.grid-main { grid-template-columns: repeat(4,  1fr); } }
         @media (max-width: 1279px) and (min-width: 1024px) { main.grid-main { grid-template-columns: repeat(3,  1fr); } }
@@ -222,7 +223,7 @@ foreach ($layout['footer']['sections'] ?? [] as $i => $sec) {
         @media (max-width: 480px)                          { main.grid-main { grid-template-columns: repeat(1,  1fr); } }
 
         /* ── Footer ──────────────────────────────────────────── */
-        footer { background: #1A1336; color: white; padding: 80px 20px; margin-top: 80px; }
+        footer { background: #1A1336; color: white; padding: 80px 0; margin-top: 80px; }
         .footer-inner { display: grid; gap: 20px 40px; }
         @media (min-width: 1536px)                         { .footer-inner { grid-template-columns: repeat(12, 1fr); } }
         @media (max-width: 1535px) and (min-width: 1280px) { .footer-inner { grid-template-columns: repeat(4,  1fr); } }
