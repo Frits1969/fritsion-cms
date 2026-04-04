@@ -84,9 +84,4 @@ class FrontController extends BaseController
         ]);
     }
 
-    public function demo()
-    {
-        // Static demo page with premium design
-        $this->view('front/demo');
-    }
 }

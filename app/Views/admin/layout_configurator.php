@@ -27,8 +27,80 @@ $nav_back_to_dashboard = $lang['nav_back_to_dashboard'] ?? 'Terug naar Dashboard
     <link rel="shortcut icon" href="/assets/logo/logo_fritsion_cms_favicon.ico">
     <link rel="stylesheet" href="/assets/css/admin_shared.css">
         <style>
+            .preview-canvas { max-width: none !important; }
             .pv-empty { background: rgba(0,0,0,0.02) !important; border: 1px dashed rgba(0,0,0,0.1) !important; color: rgba(0,0,0,0.3) !important; }
             .pv-empty .pv-col-icon { opacity: 0.2; filter: grayscale(1); }
+            .pv-hidden { opacity: 0.3; background: repeating-linear-gradient(45deg, rgba(200,0,0,0.06), rgba(200,0,0,0.06) 4px, transparent 4px, transparent 10px) !important; border: 2px dashed rgba(200,0,0,0.35) !important; color: rgba(200,0,0,0.6) !important; }
+            
+            .device-switcher .btn-device {
+                background: #e2e8f0;
+                border: 1px solid var(--glass-border);
+                padding: 10px;
+                cursor: pointer;
+                border-radius: 12px;
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 65px;
+                height: 65px;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+            }
+            .device-switcher .btn-device svg {
+                width: 100%;
+                height: 100%;
+                transition: transform 0.2s ease, fill 0.3s ease;
+            }
+            
+            /* Override the embedded SVG colors to match the site */
+            .device-switcher .btn-device svg circle[r="30"] {
+                display: none;
+            }
+            .device-switcher .btn-device svg rect[fill="#FFFFFF"] {
+                fill: var(--text-muted);
+                transition: fill 0.3s ease;
+            }
+            .device-switcher .btn-device svg circle[fill="#D0C4B5"],
+            .device-switcher .btn-device svg rect[fill="#D0C4B5"] {
+                fill: #94a3b8;
+                transition: fill 0.3s ease;
+            }
+
+            .device-switcher .btn-device:hover {
+                transform: translateY(-2px);
+                background: #cbd5e1;
+                box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            }
+            
+            .device-switcher .btn-device.active {
+                background: rgba(232, 24, 106, 0.1);
+                border-color: rgba(232, 24, 106, 0.3);
+                box-shadow: 0 4px 15px rgba(232, 24, 106, 0.1);
+            }
+            
+            /* Colors for the active icon shape */
+            .device-switcher .btn-device.active svg rect[fill="#FFFFFF"] {
+                fill: var(--accent-pink);
+            }
+            .device-switcher .btn-device.active svg circle[fill="#D0C4B5"],
+            .device-switcher .btn-device.active svg rect[fill="#D0C4B5"] {
+                fill: rgba(232, 24, 106, 0.6);
+            }
+            
+            .grid-guide {
+                position: absolute;
+                top: 0; left: 0; right: 0; bottom: 0;
+                pointer-events: none;
+                display: grid;
+                gap: 10px;
+                z-index: 0;
+            }
+            .grid-guide-col {
+                background: rgba(0, 0, 0, 0.03);
+                border-left: 1px dashed rgba(0, 0, 0, 0.1);
+                border-right: 1px dashed rgba(0, 0, 0, 0.1);
+                height: 100%;
+            }
         </style>
 </head>
 
@@ -100,6 +172,27 @@ $nav_back_to_dashboard = $lang['nav_back_to_dashboard'] ?? 'Terug naar Dashboard
                             <option value="homepage" <?= $template['type'] === 'homepage' ? 'selected' : '' ?>><?= $lang['option_homepage_variant'] ?? 'Homepagina Variant' ?></option>
                         </select>
                     </div>
+
+                    <div class="form-group" style="margin-top: 25px;">
+                        <label class="form-label"><?= $lang['label_device_preview'] ?? 'Device Preview' ?></label>
+                        <div class="device-switcher" style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <button type="button" class="btn-device" onclick="setDevicePreview(this, 1)" title="Smartphones (≤ 480px) - Max 1 kolom">
+                                <svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title_smartphone"><title id="title_smartphone">Smartphones</title><circle cx="32" cy="32" r="30" fill="#F3E7D8"/><rect x="20" y="12" width="24" height="40" rx="3" ry="3" fill="#FFFFFF"/><rect x="30" y="14" width="4" height="2" rx="1" ry="1" fill="#D0C4B5"/></svg>
+                            </button>
+                            <button type="button" class="btn-device" onclick="setDevicePreview(this, 2)" title="Kleine tablets (≥ 768px) - Max 2 kolommen">
+                                <svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title_tablet_small"><title id="title_tablet_small">Kleine tablets</title><circle cx="32" cy="32" r="30" fill="#F3E7D8"/><rect x="18" y="16" width="28" height="32" rx="4" ry="4" fill="#FFFFFF"/><circle cx="32" cy="45" r="1.5" fill="#D0C4B5"/></svg>
+                            </button>
+                            <button type="button" class="btn-device" onclick="setDevicePreview(this, 3)" title="Grote tablets / kleine laptops (≥ 1024px) - Max 3 kolommen">
+                                <svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title_tablet_big"><title id="title_tablet_big">Grote tablets / kleine laptops</title><circle cx="32" cy="32" r="30" fill="#F3E7D8"/><rect x="16" y="18" width="32" height="24" rx="4" ry="4" fill="#FFFFFF"/><rect x="16" y="44" width="32" height="4" rx="2" ry="2" fill="#D0C4B5"/></svg>
+                            </button>
+                            <button type="button" class="btn-device" onclick="setDevicePreview(this, 4)" title="Laptops / desktops (≥ 1280px) - Max 4 kolommen">
+                                <svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title_pc_small"><title id="title_pc_small">Laptops / desktops</title><circle cx="32" cy="32" r="30" fill="#F3E7D8"/><rect x="14" y="18" width="36" height="22" rx="3" ry="3" fill="#FFFFFF"/><rect x="22" y="42" width="20" height="3" rx="1.5" ry="1.5" fill="#D0C4B5"/><rect x="26" y="45" width="12" height="3" rx="1.5" ry="1.5" fill="#D0C4B5"/></svg>
+                            </button>
+                            <button type="button" class="btn-device active" onclick="setDevicePreview(this, 12)" title="Grote schermen (≥ 1536px) - Max 12 kolommen">
+                                <svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title_pc_big"><title id="title_pc_big">Grote schermen</title><circle cx="32" cy="32" r="30" fill="#F3E7D8"/><rect x="12" y="18" width="40" height="24" rx="3" ry="3" fill="#FFFFFF"/><rect x="26" y="44" width="12" height="3" rx="1.5" ry="1.5" fill="#D0C4B5"/><rect x="22" y="47" width="20" height="3" rx="1.5" ry="1.5" fill="#D0C4B5"/></svg>
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="config-section" id="section-header">
@@ -130,8 +223,8 @@ $nav_back_to_dashboard = $lang['nav_back_to_dashboard'] ?? 'Terug naar Dashboard
             </div>
 
             <!-- Preview Side -->
-            <div class="preview-panel">
-                <div class="preview-canvas">
+            <div class="preview-panel" style="overflow-x: auto; display: block;">
+                <div class="preview-canvas" id="previewCanvas" style="width: 100%; transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1); margin: 0 auto;">
                     <div class="pv-header" id="pvHeader"></div>
                     <div class="pv-main" id="pvMain"></div>
                     <div class="pv-footer" id="pvFooter"></div>
@@ -230,6 +323,140 @@ $nav_back_to_dashboard = $lang['nav_back_to_dashboard'] ?? 'Terug naar Dashboard
                     container.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
             }
+        }
+
+        let currentMaxCols = 12;
+
+        // Calculate the visual span for an item on a specific device.
+        // item.deviceWidths[mc] = explicit override (device-native cols, 0 = hidden).
+        // Falls back to auto-scaling from item.width (12-col base).
+        function calcDeviceSpan(item, deviceMaxCols) {
+            const dw = item.deviceWidths;
+            if (dw && dw[deviceMaxCols] !== undefined) {
+                return dw[deviceMaxCols]; // explicit override; can be 0
+            }
+            const width12 = item.width ?? 12;
+            if (width12 === 0) return 0;          // hidden on base → hidden everywhere
+            if (deviceMaxCols === 1) return 1;    // smartphone always 1
+            if (width12 >= 12) return deviceMaxCols;
+            const span = Math.round((width12 / 12) * deviceMaxCols);
+            return Math.max(1, Math.min(deviceMaxCols, span));
+        }
+
+        // Auto-span without device override (used in option label "Auto (n)").
+        function calcAutoSpan(item, deviceMaxCols) {
+            const width12 = item.width ?? 12;
+            if (width12 === 0 || deviceMaxCols === 1) return deviceMaxCols === 1 ? (width12 === 0 ? 0 : 1) : 0;
+            if (width12 >= 12) return deviceMaxCols;
+            const span = Math.round((width12 / 12) * deviceMaxCols);
+            return Math.max(1, Math.min(deviceMaxCols, span));
+        }
+
+        // Store a device-specific width override on an item.
+        // value '' = remove override (revert to auto); 0 = hidden.
+        function setItemDeviceWidth(item, deviceMaxCols, value) {
+            if (deviceMaxCols === 12) {
+                item.width = (value === '' || value === null) ? 12 : parseInt(value);
+            } else {
+                if (!item.deviceWidths) item.deviceWidths = {};
+                if (value === '' || value === null) {
+                    delete item.deviceWidths[deviceMaxCols];
+                } else {
+                    item.deviceWidths[deviceMaxCols] = parseInt(value);
+                }
+            }
+        }
+
+        function setHeaderSectionDeviceWidth(index, value) {
+            setItemDeviceWidth(state.header.sections[index], currentMaxCols, value);
+            renderPreview();
+        }
+
+        function setFooterSectionDeviceWidth(index, value) {
+            setItemDeviceWidth(state.footer.sections[index], currentMaxCols, value);
+            renderPreview();
+        }
+
+        function setColDeviceWidth(rowIndex, colIndex, value) {
+            setItemDeviceWidth(state.main.rows[rowIndex].columns[colIndex], currentMaxCols, value);
+            renderPreview();
+        }
+
+        // Build <option> list for the width selector, device-aware.
+        // On groot scherm (12): 0–12 in 12-col units (0 = verborgen).
+        // On other devices: Auto(n) + 0–maxCols in device-native units.
+        function getDeviceWidthOptions(item, deviceMaxCols) {
+            if (deviceMaxCols === 12) {
+                const cur = item.width ?? 12;
+                let opts = `<option value="0" ${cur === 0 ? 'selected' : ''}>0 — verborgen</option>`;
+                for (let i = 1; i <= 12; i++) {
+                    opts += `<option value="${i}" ${cur === i ? 'selected' : ''}>${i}</option>`;
+                }
+                return opts;
+            }
+            const dw = item.deviceWidths || {};
+            const curVal = dw[deviceMaxCols]; // undefined = auto
+            const autoN  = calcAutoSpan(item, deviceMaxCols);
+            let opts = `<option value="" ${curVal === undefined ? 'selected' : ''}>Auto (${autoN})</option>`;
+            opts += `<option value="0" ${curVal === 0 ? 'selected' : ''}>0 — verborgen</option>`;
+            for (let i = 1; i <= deviceMaxCols; i++) {
+                opts += `<option value="${i}" ${curVal === i ? 'selected' : ''}>${i}</option>`;
+            }
+            return opts;
+        }
+
+        function setDevicePreview(btn, maxCols = 12) {
+            document.querySelectorAll('.btn-device').forEach(el => el.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            
+            const canvas = document.getElementById('previewCanvas');
+            if (canvas) {
+                let w = '90%';
+                if (maxCols === 1) w = '18%';
+                else if (maxCols === 2) w = '36%';
+                else if (maxCols === 3) w = '54%';
+                else if (maxCols === 4) w = '72%';
+                else w = '90%';
+                canvas.style.width = w;
+            }
+            
+            if (currentMaxCols !== maxCols) {
+                currentMaxCols = maxCols;
+                // Note: we do NOT call enforceMaxCols() here — the device switcher is
+                // purely a preview. calcDeviceSpan() scales widths visually, and CSS Grid
+                // auto-wraps items that no longer fit onto the next row.
+
+                const hCount = document.getElementById('headerCount');
+                if(hCount) { 
+                    hCount.max = maxCols; 
+                    hCount.disabled = (maxCols === 1);
+                }
+                const fCount = document.getElementById('footerCount');
+                if(fCount) { 
+                    fCount.max = maxCols; 
+                    fCount.disabled = (maxCols === 1);
+                }
+
+                renderConfig();
+                renderPreview();
+            }
+        }
+
+        function enforceMaxCols(max) {
+            if (state.header.sections.length > max) state.header.sections = state.header.sections.slice(0, max);
+            if (state.footer.sections.length > max) state.footer.sections = state.footer.sections.slice(0, max);
+            
+            state.main.rows.forEach(row => {
+                if (row.columns.length > max) {
+                    row.columns = row.columns.slice(0, max);
+                    const defaultWidth = Math.floor(12 / max);
+                    row.columns.forEach(col => col.width = defaultWidth);
+                    const currentSum = row.columns.reduce((sum, col) => sum + col.width, 0);
+                    if (currentSum < 12 && row.columns.length > 0) {
+                        row.columns[row.columns.length - 1].width += (12 - currentSum);
+                    }
+                }
+            });
         }
 
         // --- State Management ---
@@ -346,6 +573,7 @@ $nav_back_to_dashboard = $lang['nav_back_to_dashboard'] ?? 'Terug naar Dashboard
         }
 
         // --- Rendering ---
+
         function renderConfig() {
             // Header Sections
             let hHtml = `
@@ -363,17 +591,13 @@ $nav_back_to_dashboard = $lang['nav_back_to_dashboard'] ?? 'Terug naar Dashboard
                 </div>
             `;
             state.header.sections.forEach((sec, i) => {
-                const currentWidth = sec.width || Math.floor(12 / (state.header.sections.length || 1));
-                const otherSum = state.header.sections.reduce((sum, s, idx) => idx !== i ? sum + (s.width || Math.floor(12 / (state.header.sections.length || 1))) : sum, 0);
-                const maxWidth = 12 - otherSum;
-
                 hHtml += `<div class="form-group row-item">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <label class="form-label">${labels.vlakContent.replace('%d', i + 1)}</label>
                         <div style="display:flex; align-items:center; gap:5px;">
                             <span style="font-size:1.4rem; line-height:1;">↔️</span>
-                            <select class="form-select" style="width:60px; padding:2px 4px; font-size:0.75rem;" onchange="state.header.sections[${i}].width = parseInt(this.value); renderPreview();">
-                                ${[1,2,3,4,5,6,7,8,9,10,11,12].map(w => `<option value="${w}" ${currentWidth == w ? 'selected' : ''}>${w}</option>`).join('')}
+                            <select class="form-select" style="width:80px; padding:2px 4px; font-size:0.75rem;" onchange="setHeaderSectionDeviceWidth(${i}, this.value)">
+                                ${getDeviceWidthOptions(sec, currentMaxCols)}
                             </select>
                             <span style="font-size:1.4rem; line-height:1; color:var(--text-muted); margin-left:5px;">↕️</span>
                             <select class="form-select" style="width:50px; padding:2px 4px; font-size:0.75rem;" onchange="updateAreaRowSpan('header', ${i}, this.value)">
@@ -406,8 +630,8 @@ $nav_back_to_dashboard = $lang['nav_back_to_dashboard'] ?? 'Terug naar Dashboard
                     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-bottom:15px;">
                         <div class="form-group" style="margin-bottom:0;">
                             <label class="form-label">${labels.rowColumns.replace('%d', ri + 1)}</label>
-                            <select class="form-select" onchange="updateColCount(${ri}, this.value)">
-                                ${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(n => `<option value="${n}" ${row.columns.length == n ? 'selected' : ''}>${n} ${n > 1 ? labels.columns : labels.column}</option>`).join('')}
+                            <select class="form-select" onchange="updateColCount(${ri}, this.value)" ${currentMaxCols === 1 ? 'disabled title="Maximaal 1 kolom"' : ''}>
+                                ${[...Array(currentMaxCols).keys()].map(x => x + 1).map(n => `<option value="${n}" ${row.columns.length == n ? 'selected' : ''}>${n} ${n > 1 ? labels.columns : labels.column}</option>`).join('')}
                             </select>
                         </div>
                         <div class="form-group" style="margin-bottom:0;">
@@ -423,18 +647,14 @@ $nav_back_to_dashboard = $lang['nav_back_to_dashboard'] ?? 'Terug naar Dashboard
                     </div>
                     <div class="cols-container">
                         ${row.columns.map((col, ci) => {
-                            const currentWidth = col.width || Math.floor(12 / (row.columns.length || 1));
-                            const otherColsSum = row.columns.reduce((sum, c, i) => i !== ci ? sum + (c.width || 0) : sum, 0);
-                            const maxWidth = 12 - otherColsSum;
-
                             return `
                                 <div class="col-item" id="config-container-row-${ri}-col-${ci}">
                                     <div style="display:flex; justify-content:space-between; align-items:center;">
                                         <label class="form-label" style="font-size: 0.75rem;">${labels.columnType.replace('%d', ci + 1)}</label>
                                         <div style="display:flex; align-items:center; gap:5px;">
                                             <span style="font-size:1.4rem; line-height:1; color:var(--text-muted);">↔️</span>
-                                            <select class="form-select" style="width:60px; padding:2px 4px; font-size:0.75rem;" onchange="updateColWidth(${ri}, ${ci}, this.value)">
-                                                ${[1,2,3,4,5,6,7,8,9,10,11,12].map(w => `<option value="${w}" ${currentWidth == w ? 'selected' : ''}>${w}</option>`).join('')}
+                                            <select class="form-select" style="width:80px; padding:2px 4px; font-size:0.75rem;" onchange="setColDeviceWidth(${ri}, ${ci}, this.value)">
+                                                ${getDeviceWidthOptions(col, currentMaxCols)}
                                             </select>
                                             <span style="font-size:1.4rem; line-height:1; color:var(--text-muted); margin-left:5px;">↕️</span>
                                             <select class="form-select" style="width:50px; padding:2px 4px; font-size:0.75rem;" onchange="updateColRowSpan(${ri}, ${ci}, this.value)">
@@ -472,17 +692,13 @@ $nav_back_to_dashboard = $lang['nav_back_to_dashboard'] ?? 'Terug naar Dashboard
                 </div>
             `;
             state.footer.sections.forEach((sec, i) => {
-                const currentWidth = sec.width || Math.floor(12 / (state.footer.sections.length || 1));
-                const otherSum = state.footer.sections.reduce((sum, s, idx) => idx !== i ? sum + (s.width || Math.floor(12 / (state.footer.sections.length || 1))) : sum, 0);
-                const maxWidth = 12 - otherSum;
-
                 fHtml += `<div class="form-group row-item">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <label class="form-label">${labels.vlakContent.replace('%d', i + 1)}</label>
                         <div style="display:flex; align-items:center; gap:5px;">
                             <span style="font-size:1.4rem; line-height:1;">↔️</span>
-                            <select class="form-select" style="width:60px; padding:2px 4px; font-size:0.75rem;" onchange="state.footer.sections[${i}].width = parseInt(this.value); renderPreview();">
-                                ${[1,2,3,4,5,6,7,8,9,10,11,12].map(w => `<option value="${w}" ${currentWidth == w ? 'selected' : ''}>${w}</option>`).join('')}
+                            <select class="form-select" style="width:80px; padding:2px 4px; font-size:0.75rem;" onchange="setFooterSectionDeviceWidth(${i}, this.value)">
+                                ${getDeviceWidthOptions(sec, currentMaxCols)}
                             </select>
                             <span style="font-size:1.4rem; line-height:1; color:var(--text-muted); margin-left:5px;">↕️</span>
                             <select class="form-select" style="width:50px; padding:2px 4px; font-size:0.75rem;" onchange="updateAreaRowSpan('footer', ${i}, this.value)">
@@ -508,48 +724,60 @@ $nav_back_to_dashboard = $lang['nav_back_to_dashboard'] ?? 'Terug naar Dashboard
         }
 
         function renderPreview() {
-            const gridGuide = `<div class="grid-guide"></div>`;
+            const mc = currentMaxCols;
+            const gridGuide = mc > 1 
+                ? `<div class="grid-guide" style="grid-template-columns: repeat(${mc}, 1fr);">` + Array(mc).fill('<div class="grid-guide-col"></div>').join('') + `</div>`
+                : '';
 
             // Header Preview
             let hEl = document.getElementById('pvHeader');
             hEl.style.position = 'relative';
             hEl.style.display = 'grid';
-            hEl.style.gridTemplateColumns = 'repeat(12, 1fr)';
+            hEl.style.gridTemplateColumns = `repeat(${mc}, 1fr)`;
             hEl.style.gridAutoRows = 'minmax(60px, auto)';
             hEl.style.gap = '10px';
             hEl.style.minHeight = state.header.height || '90px';
             hEl.innerHTML = gridGuide + state.header.sections.map((sec, i) => {
                 let info = contentTypes.find(ct => ct.id === sec.type);
-                const width = sec.width || Math.floor(12 / (state.header.sections.length || 1));
+                const span = calcDeviceSpan(sec, mc);
                 const rowSpan = sec.rowSpan || 1;
                 const isEmpty = sec.type === 'empty';
-                return `<div class="pv-col pv-compact ${isEmpty ? 'pv-empty' : ''}" id="pv-header-${i}" style="grid-column: span ${width}; grid-row: span ${rowSpan}; position: relative; z-index: 1;" onclick="handlePreviewClick('header[${i}]', 'header-${i}')">
+                const isHidden = span === 0;
+                const colStyle = isHidden
+                    ? 'grid-column: span 1; grid-row: span 1; position: relative; z-index: 1;'
+                    : `grid-column: span ${span}; grid-row: span ${rowSpan}; position: relative; z-index: 1;`;
+                return `<div class="pv-col pv-compact ${isEmpty ? 'pv-empty' : ''} ${isHidden ? 'pv-hidden' : ''}" id="pv-header-${i}" style="${colStyle}" onclick="handlePreviewClick('header[${i}]', 'header-${i}')">
                         <span class="pv-col-icon">${info.icon}</span>
-                        <span class="pv-col-type">${isEmpty ? 'LEEG' : info.name}</span>
-                        <span class="pv-dimensions">${width} × ${rowSpan}</span>
+                        <span class="pv-col-type">${isHidden ? 'VERBORGEN' : (isEmpty ? 'LEEG' : info.name)}</span>
+                        <span class="pv-dimensions">${isHidden ? '✕' : `${span} × ${rowSpan}`}</span>
                     </div>`;
             }).join('');
 
             // Main Preview
             let mainEl = document.getElementById('pvMain');
             mainEl.style.display = 'grid';
-            mainEl.style.gridTemplateColumns = 'repeat(12, 1fr)';
-            mainEl.style.gridAutoRows = 'minmax(80px, auto)';
+            mainEl.style.gridTemplateColumns = `repeat(${mc}, 1fr)`;
+            mainEl.style.gridAutoRows = 'minmax(90px, auto)';
             mainEl.style.gap = '10px';
             mainEl.style.position = 'relative';
+            // Remove fixed row template when on smaller devices so items wrap automatically
+            mainEl.style.gridTemplateRows = '';
             
             let mHtml = gridGuide;
             state.main.rows.forEach((row, ri) => {
                 row.columns.forEach((col, ci) => {
                     let info = contentTypes.find(ct => ct.id === col.type);
-                    const width = col.width || Math.floor(12 / (row.columns.length || 1));
+                    const span = calcDeviceSpan(col, mc);
                     const rowSpan = col.rowSpan || 1;
                     const isEmpty = col.type === 'empty';
-                    const style = `grid-column: span ${width}; grid-row: span ${rowSpan}; position: relative; z-index: 1; min-height: 50px;`;
-                    mHtml += `<div class="pv-col ${isEmpty ? 'pv-empty' : ''}" id="pv-row-${ri}-col-${ci}" style="${style}" onclick="handlePreviewClick('content[${ri}][${ci}]', 'row-${ri}-col-${ci}')">
+                    const isHidden = span === 0;
+                    const style = isHidden
+                        ? 'grid-column: span 1; grid-row: span 1; position: relative; z-index: 1; height: 100%;'
+                        : `grid-column: span ${span}; grid-row: span ${rowSpan}; position: relative; z-index: 1; height: 100%;`;
+                    mHtml += `<div class="pv-col ${isEmpty ? 'pv-empty' : ''} ${isHidden ? 'pv-hidden' : ''}" id="pv-row-${ri}-col-${ci}" style="${style}" onclick="handlePreviewClick('content[${ri}][${ci}]', 'row-${ri}-col-${ci}')">
                             <span class="pv-col-icon">${info.icon}</span>
-                            <span class="pv-col-type">${isEmpty ? 'LEEG' : info.name}</span>
-                            <span class="pv-dimensions">${width} × ${rowSpan}</span>
+                            <span class="pv-col-type">${isHidden ? 'VERBORGEN' : (isEmpty ? 'LEEG' : info.name)}</span>
+                            <span class="pv-dimensions">${isHidden ? '✕' : `${span} × ${rowSpan}`}</span>
                         </div>`;
                 });
             });
@@ -559,19 +787,23 @@ $nav_back_to_dashboard = $lang['nav_back_to_dashboard'] ?? 'Terug naar Dashboard
             let fEl = document.getElementById('pvFooter');
             fEl.style.position = 'relative';
             fEl.style.display = 'grid';
-            fEl.style.gridTemplateColumns = 'repeat(12, 1fr)';
+            fEl.style.gridTemplateColumns = `repeat(${mc}, 1fr)`;
             fEl.style.gridAutoRows = 'minmax(80px, auto)';
             fEl.style.gap = '10px';
             fEl.style.minHeight = state.footer.height || '120px';
             fEl.innerHTML = gridGuide + state.footer.sections.map((sec, i) => {
                 let info = contentTypes.find(ct => ct.id === sec.type);
-                const width = sec.width || Math.floor(12 / (state.footer.sections.length || 1));
+                const span = calcDeviceSpan(sec, mc);
                 const rowSpan = sec.rowSpan || 1;
                 const isEmpty = sec.type === 'empty';
-                return `<div class="pv-col pv-compact ${isEmpty ? 'pv-empty' : ''}" id="pv-footer-${i}" style="grid-column: span ${width}; grid-row: span ${rowSpan}; position: relative; z-index: 1;" onclick="handlePreviewClick('footer[${i}]', 'footer-${i}')">
+                const isHidden = span === 0;
+                const colStyle = isHidden
+                    ? 'grid-column: span 1; grid-row: span 1; position: relative; z-index: 1;'
+                    : `grid-column: span ${span}; grid-row: span ${rowSpan}; position: relative; z-index: 1;`;
+                return `<div class="pv-col pv-compact ${isEmpty ? 'pv-empty' : ''} ${isHidden ? 'pv-hidden' : ''}" id="pv-footer-${i}" style="${colStyle}" onclick="handlePreviewClick('footer[${i}]', 'footer-${i}')">
                         <span class="pv-col-icon">${info.icon}</span>
-                        <span class="pv-col-type">${isEmpty ? 'LEEG' : info.name}</span>
-                        <span class="pv-dimensions">${width} × ${rowSpan}</span>
+                        <span class="pv-col-type">${isHidden ? 'VERBORGEN' : (isEmpty ? 'LEEG' : info.name)}</span>
+                        <span class="pv-dimensions">${isHidden ? '✕' : `${span} × ${rowSpan}`}</span>
                     </div>`;
             }).join('');
         }

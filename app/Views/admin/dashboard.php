@@ -144,16 +144,6 @@ $reset_install_btn = $lang['reset_install_btn'] ?? 'Herstart Installatie';
                                     </a>
                                 </div>
                             </div>
-                            <div
-                                style="display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid var(--glass-border);">
-                                <div>
-                                    <a href="/backoffice/pages" style="text-decoration: none; color: inherit;">
-                                        <span style="font-weight: 500;">Demo Pagina </span> <span
-                                            style="font-size: 0.7rem; background: var(--blue); color: white; padding: 2px 6px; border-radius: 4px; margin-left: 5px;">DEMO</span>
-                                        <br><small style="color: var(--text-muted);">/demo</small>
-                                    </a>
-                                </div>
-                            </div>
                             <div style="padding: 20px; text-align: center; color: var(--text-muted); font-size: 0.9rem;">
                                 <?= $no_other_pages_found ?>
                             </div>

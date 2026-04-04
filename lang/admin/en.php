@@ -151,6 +151,8 @@ return [
     'label_current_password' => 'Current Password',
     'btn_save_profile' => 'Save Profile',
     'label_live_preview' => 'Live Preview',
+    'title_device_preview' => 'Device Preview',
+    'desc_device_preview' => 'Selecteer preview screen size.',
     'slug_tip' => 'The \'slug\' is the part of the URL that comes after the domain name (e.g., /about-us).',
     'media_title' => 'Media Manager',
     'media_desc' => 'Manage all your images, videos, and folders.',

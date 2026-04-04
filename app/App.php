@@ -18,7 +18,7 @@ use Fritsion\Controllers\AdminController;
 
 class App
 {
-    const VERSION = '0.1.6';
+    const VERSION = '0.1.7';
     protected static $instance;
 
     public function __construct()
@@ -137,9 +137,6 @@ class App
                 } else {
                     $controller->index();
                 }
-            } elseif ($uri === '/demo') {
-                $controller = new FrontController();
-                $controller->demo();
             } else {
                 $controller = new FrontController();
                 $controller->index($uri);

@@ -151,6 +151,8 @@ return [
     'label_current_password' => 'Huidig wachtwoord',
     'btn_save_profile' => 'Profiel opslaan',
     'label_live_preview' => 'Live Voorbeeld',
+    'title_device_preview' => 'Device Weergave',
+    'desc_device_preview' => 'Selecteer preview schermformaat.',
     'slug_tip' => 'De \'slug\' is het deel van de URL dat na de domeinnaam komt (bijv. /over-ons).',
     'media_title' => 'Media Beheer',
     'media_desc' => 'Beheer al je afbeeldingen, video\'s en mappen.',
