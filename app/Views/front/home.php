@@ -214,7 +214,7 @@ foreach ($layout['footer']['sections'] ?? [] as $i => $sec) {
         .h-section { display: flex; align-items: center; gap: 20px; }
 
         /* ── Main ────────────────────────────────────────────── */
-        main.grid-main { display: grid; gap: 80px 40px; margin-bottom: 80px; padding: 60px 0; }
+        main.grid-main { display: grid; gap: 80px 40px; margin-bottom: 80px; padding: 60px 20px; }
         @media (min-width: 1536px)                         { main.grid-main { grid-template-columns: repeat(12, 1fr); } }
         @media (max-width: 1535px) and (min-width: 1280px) { main.grid-main { grid-template-columns: repeat(4,  1fr); } }
         @media (max-width: 1279px) and (min-width: 1024px) { main.grid-main { grid-template-columns: repeat(3,  1fr); } }
@@ -222,7 +222,7 @@ foreach ($layout['footer']['sections'] ?? [] as $i => $sec) {
         @media (max-width: 480px)                          { main.grid-main { grid-template-columns: repeat(1,  1fr); } }
 
         /* ── Footer ──────────────────────────────────────────── */
-        footer { background: #1A1336; color: white; padding: 80px 0; margin-top: 80px; }
+        footer { background: #1A1336; color: white; padding: 80px 20px; margin-top: 80px; }
         .footer-inner { display: grid; gap: 20px 40px; }
         @media (min-width: 1536px)                         { .footer-inner { grid-template-columns: repeat(12, 1fr); } }
         @media (max-width: 1535px) and (min-width: 1280px) { .footer-inner { grid-template-columns: repeat(4,  1fr); } }
