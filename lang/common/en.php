@@ -45,6 +45,8 @@ return [
     'btn_cancel' => 'Cancel',
     'btn_delete' => 'Delete',
     'btn_edit' => 'Edit',
+    'btn_choose_from_media' => 'Choose from media',
+    'title_media_picker' => 'Select File',
 
     'label_block' => 'Block',
     'label_title' => 'Title',

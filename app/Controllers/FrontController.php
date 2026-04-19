@@ -77,10 +77,20 @@ class FrontController extends BaseController
 
         $homepageLayout = !empty($layoutJson) ? json_decode($layoutJson, true) : null;
 
+        // Fetch all published pages for frontend navigation logic
+        $allPages = [];
+        $pagesRes = Database::query("SELECT id, title, slug, is_homepage FROM {$prefix}pages WHERE status = 'published' ORDER BY is_homepage DESC");
+        if ($pagesRes) {
+            while ($p = $pagesRes->fetch_assoc()) {
+                $allPages[] = $p;
+            }
+        }
+
         $this->view('front/home', [
             'settings' => $settings,
             'homepageLayout' => $homepageLayout,
-            'page' => $page
+            'page' => $page,
+            'allPages' => $allPages
         ]);
     }
 

@@ -142,10 +142,13 @@ $nav_back_to_dashboard = $nav_back_to_dashboard ?? 'Terug naar Dashboard';
                                         <span style="font-size: 2rem;">🖼️</span>
                                     <?php endif; ?>
                                 </div>
-                                <div style="flex: 1;">
+                                <div style="flex: 1; display: flex; flex-direction: column; gap: 8px;">
                                     <button type="button" class="btn-secondary"
-                                        style="width: 100%; margin-bottom: 10px;"
+                                        style="width: 100%;"
                                         onclick="document.getElementById('branding_logo_file').click()"><?= $btn_upload_logo ?></button>
+                                    <button type="button" class="btn-secondary"
+                                        style="width: 100%;"
+                                        onclick="openMediaPicker()"><?= $btn_choose_from_media ?></button>
                                     <input type="file" id="branding_logo_file" style="display: none;" accept="image/*"
                                         onchange="uploadBrandingLogo(this)">
                                     <input type="hidden" name="site_logo" id="site_logo_path"
@@ -222,6 +225,25 @@ $nav_back_to_dashboard = $nav_back_to_dashboard ?? 'Terug naar Dashboard';
         </main>
     </div>
 
+    <!-- Media Picker Modal -->
+    <div id="mediaPickerModal" class="modal-backdrop">
+        <div class="modal-card wide">
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="margin: 0;"><?= $title_media_picker ?></h2>
+                <button type="button" onclick="closeMediaPicker()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+            </div>
+            <div id="mediaPickerGrid" class="media-picker-grid">
+                <!-- Images will be loaded here -->
+                <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);">
+                    Laden van media...
+                </div>
+            </div>
+            <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
+                <button type="button" onclick="closeMediaPicker()" class="btn-secondary"><?= $btn_cancel ?></button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const userWidget = document.getElementById('user-widget');
         const userMenu = document.getElementById('user-menu');
@@ -284,6 +306,44 @@ $nav_back_to_dashboard = $nav_back_to_dashboard ?? 'Terug naar Dashboard';
                 alert('Er is een fout opgetreden bij het uploaden.');
                 preview.innerHTML = '<span style="font-size: 2rem;">🖼️</span>';
             }
+        }
+
+        async function openMediaPicker() {
+            const modal = document.getElementById('mediaPickerModal');
+            const grid = document.getElementById('mediaPickerGrid');
+            modal.classList.add('active');
+
+            try {
+                const response = await fetch('/backoffice/media/list');
+                const images = await response.json();
+
+                if (images.length === 0) {
+                    grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);">Geen afbeeldingen gevonden in de mediabibliotheek.</div>';
+                    return;
+                }
+
+                grid.innerHTML = images.map(img => `
+                    <div class="media-picker-item" onclick="selectMediaItem('${img.url}')" title="${img.name}">
+                        <img src="${img.url}" alt="${img.name}">
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error fetching media:', error);
+                grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #ef4444;">Fout bij het laden van media.</div>';
+            }
+        }
+
+        function closeMediaPicker() {
+            document.getElementById('mediaPickerModal').classList.remove('active');
+        }
+
+        function selectMediaItem(url) {
+            const preview = document.getElementById('branding-logo-preview');
+            const pathInput = document.getElementById('site_logo_path');
+
+            preview.innerHTML = `<img src="${url}" style="max-width: 100%; max-height: 100%; object-fit: contain;">`;
+            pathInput.value = url;
+            closeMediaPicker();
         }
 
     </script>

@@ -45,6 +45,8 @@ return [
     'btn_cancel' => 'Annuleren',
     'btn_delete' => 'Verwijderen',
     'btn_edit' => 'Bewerken',
+    'btn_choose_from_media' => 'Kies uit media',
+    'title_media_picker' => 'Selecteer Bestand',
 
     'label_block' => 'Blok',
     'label_title' => 'Titel',

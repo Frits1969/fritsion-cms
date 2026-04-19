@@ -37,7 +37,7 @@ $reset_install_btn = $lang['reset_install_btn'] ?? 'Herstart Installatie';
 
     <div class="main-wrapper">
         <header class="topbar">
-            <div style="font-weight: 600; color: var(--text-muted);"><?= $backoffice_title ?> / <?= $nav_dashboard ?>
+            <div class="topbar-title"><?= $backoffice_title ?> / <?= $nav_dashboard ?>
             </div>
 
             <div class="topbar-actions">
@@ -55,7 +55,7 @@ $reset_install_btn = $lang['reset_install_btn'] ?? 'Herstart Installatie';
                     <!-- User Menu Dropdown -->
                     <div class="user-menu" id="user-menu">
                         <a href="/backoffice/profile" class="menu-item"><?= $nav_profile ?></a>
-                        <hr style="margin: 5px 0; border: none; border-top: 1px solid var(--glass-border);">
+                        <hr>
                         <a href="/backoffice/logout" class="menu-item logout"><?= $nav_logout ?></a>
                     </div>
                 </div>
@@ -104,14 +104,15 @@ $reset_install_btn = $lang['reset_install_btn'] ?? 'Herstart Installatie';
                     <div class="stat-value">1</div>
                     <div class="stat-label"><?= $users_label ?></div>
                 </div>
-                <div class="stat-card" style="flex-direction: column; align-items: flex-start; gap: 12px;">
-                    <div style="display: flex; align-items: center; gap: 15px; width: 100%;">
-                        <div class="stat-icon"
-                            style="margin: 0; color: <?= (($siteStatus ?? 'inactive') === 'active' ? '#22c55e' : '#ef4444') ?>; background: <?= (($siteStatus ?? 'inactive') === 'active' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)') ?>;">
-                            🌐</div>
-                        <div style="flex: 1;">
-                            <div class="stat-value"
-                                style="font-size: 1.25rem; color: <?= (($siteStatus ?? 'inactive') === 'active' ? '#22c55e' : '#ef4444') ?>;">
+                <div class="stat-card vertical">
+                    <div class="stat-card-header">
+                        <?php 
+                            $statusColor = (($siteStatus ?? 'inactive') === 'active' ? '#22c55e' : '#ef4444');
+                            $statusBg = (($siteStatus ?? 'inactive') === 'active' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)');
+                        ?>
+                        <div class="stat-icon" style="margin: 0; color: <?= $statusColor ?>; background: <?= $statusBg ?>;">🌐</div>
+                        <div class="stat-card-body">
+                            <div class="stat-value" style="font-size: 1.25rem; color: <?= $statusColor ?>;">
                                 <?= (($siteStatus ?? 'inactive') === 'active' ? ($lang['active_caps'] ?? 'ACTIEF') : ($lang['inactive_caps'] ?? 'INACTIEF')) ?>
                             </div>
                             <div class="stat-label" style="font-size: 0.75rem;">
@@ -119,28 +120,25 @@ $reset_install_btn = $lang['reset_install_btn'] ?? 'Herstart Installatie';
                             </div>
                         </div>
                     </div>
-                    <a href="/backoffice/site-status/toggle" class="btn-secondary"
-                        style="width: 100%; padding: 8px; font-size: 0.75rem; text-align: center; border-radius: 8px; font-weight: 700;">
+                    <a href="/backoffice/site-status/toggle" class="btn-secondary stat-card-footer-link">
                         <?= (($siteStatus ?? 'inactive') === 'active' ? ($lang['deactivate'] ?? 'Deactiveren') : ($lang['activate'] ?? 'Activeren')) ?>
                     </a>
                 </div>
             </section>
 
-            <section class="dashboard-grid"
-                style="display: grid; grid-template-columns: 2fr 1fr; gap: 40px; margin-top: 40px;">
+            <section class="dashboard-grid-layout">
                 <!-- Content Overview -->
-                <div class="stat-card" style="min-height: 300px;">
+                <div class="stat-card vertical">
                     <h3 style="margin-bottom: 20px; font-weight: 600; display: flex; align-items: center; gap: 10px;">
                         <span style="color: var(--accent-green);">📄</span> <?= $latest_pages_title ?>
                     </h3>
-                    <div style="background: rgba(255, 255, 255, 0.03); border-radius: 12px; padding: 15px;">
+                    <div class="latest-pages-list">
                         <?php if (empty($latestPages)): ?>
-                            <div
-                                style="display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid var(--glass-border);">
+                            <div class="latest-pages-item">
                                 <div>
-                                    <a href="/backoffice/pages" style="text-decoration: none; color: inherit;">
-                                        <span style="font-weight: 500;">Tijdelijke Home</span>
-                                        <br><small style="color: var(--text-muted);">/ (Root)</small>
+                                    <a href="/backoffice/pages" class="latest-pages-link">
+                                        <span class="latest-pages-title">Tijdelijke Home</span>
+                                        <br><small class="latest-pages-slug">/ (Root)</small>
                                     </a>
                                 </div>
                             </div>
@@ -149,14 +147,11 @@ $reset_install_btn = $lang['reset_install_btn'] ?? 'Herstart Installatie';
                             </div>
                         <?php else: ?>
                             <?php foreach ($latestPages as $page): ?>
-                                <div
-                                    style="display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid var(--glass-border);">
+                                <div class="latest-pages-item">
                                     <div>
-                                        <a href="/backoffice/pages/edit/<?= $page['id'] ?>"
-                                            style="text-decoration: none; color: inherit;">
-                                            <span style="font-weight: 500;"><?= htmlspecialchars($page['title']) ?></span>
-                                            <br><small
-                                                style="color: var(--text-muted);">/<?= htmlspecialchars($page['slug']) ?></small>
+                                        <a href="/backoffice/pages/edit/<?= $page['id'] ?>" class="latest-pages-link">
+                                            <span class="latest-pages-title"><?= htmlspecialchars($page['title']) ?></span>
+                                            <br><small class="latest-pages-slug">/<?= htmlspecialchars($page['slug']) ?></small>
                                         </a>
                                     </div>
                                 </div>
@@ -166,24 +161,15 @@ $reset_install_btn = $lang['reset_install_btn'] ?? 'Herstart Installatie';
                 </div>
 
                 <!-- System Actions -->
-                <div class="stat-card">
+                <div class="stat-card vertical">
                     <h3 style="margin-bottom: 20px; font-weight: 600;"><?= $system_actions_title ?></h3>
                     <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 25px;">
                         <?= $system_actions_desc ?>
                     </p>
 
-                    <a href="/reset_install.php" class="btn-reset"
-                        style="display: inline-block; width: 100%; padding: 15px; background: rgba(239, 68, 68, 0.1); color: #ef4444; text-decoration: none; border-radius: 12px; font-weight: 600; text-align: center; border: 1px solid rgba(239, 68, 68, 0.2); transition: all 0.3s;">
+                    <a href="/reset_install.php" class="btn-reset-danger">
                         ⚠️ <?= $reset_install_btn ?>
                     </a>
-
-                    <style>
-                        .btn-reset:hover {
-                            background: #ef4444 !important;
-                            color: white !important;
-                            box-shadow: 0 10px 20px rgba(239, 68, 68, 0.2);
-                        }
-                    </style>
                 </div>
             </section>
         </main>

@@ -30,62 +30,6 @@ $nav_back_to_dashboard = $lang['nav_back_to_dashboard'] ?? 'Terug naar Dashboard
             .preview-canvas { max-width: none !important; }
             .pv-empty { background: rgba(0,0,0,0.02) !important; border: 1px dashed rgba(0,0,0,0.1) !important; color: rgba(0,0,0,0.3) !important; }
             .pv-empty .pv-col-icon { opacity: 0.2; filter: grayscale(1); }
-            .pv-hidden { opacity: 0.3; background: repeating-linear-gradient(45deg, rgba(200,0,0,0.06), rgba(200,0,0,0.06) 4px, transparent 4px, transparent 10px) !important; border: 2px dashed rgba(200,0,0,0.35) !important; color: rgba(200,0,0,0.6) !important; }
-            
-            .device-switcher .btn-device {
-                background: #e2e8f0;
-                border: 1px solid var(--glass-border);
-                padding: 10px;
-                cursor: pointer;
-                border-radius: 12px;
-                transition: all 0.3s ease;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                width: 65px;
-                height: 65px;
-                box-shadow: 0 2px 5px rgba(0,0,0,0.02);
-            }
-            .device-switcher .btn-device svg {
-                width: 100%;
-                height: 100%;
-                transition: transform 0.2s ease, fill 0.3s ease;
-            }
-            
-            /* Override the embedded SVG colors to match the site */
-            .device-switcher .btn-device svg circle[r="30"] {
-                display: none;
-            }
-            .device-switcher .btn-device svg rect[fill="#FFFFFF"] {
-                fill: var(--text-muted);
-                transition: fill 0.3s ease;
-            }
-            .device-switcher .btn-device svg circle[fill="#D0C4B5"],
-            .device-switcher .btn-device svg rect[fill="#D0C4B5"] {
-                fill: #94a3b8;
-                transition: fill 0.3s ease;
-            }
-
-            .device-switcher .btn-device:hover {
-                transform: translateY(-2px);
-                background: #cbd5e1;
-                box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-            }
-            
-            .device-switcher .btn-device.active {
-                background: rgba(232, 24, 106, 0.1);
-                border-color: rgba(232, 24, 106, 0.3);
-                box-shadow: 0 4px 15px rgba(232, 24, 106, 0.1);
-            }
-            
-            /* Colors for the active icon shape */
-            .device-switcher .btn-device.active svg rect[fill="#FFFFFF"] {
-                fill: var(--accent-pink);
-            }
-            .device-switcher .btn-device.active svg circle[fill="#D0C4B5"],
-            .device-switcher .btn-device.active svg rect[fill="#D0C4B5"] {
-                fill: rgba(232, 24, 106, 0.6);
-            }
             
             .grid-guide {
                 position: absolute;
@@ -175,23 +119,7 @@ $nav_back_to_dashboard = $lang['nav_back_to_dashboard'] ?? 'Terug naar Dashboard
 
                     <div class="form-group" style="margin-top: 25px;">
                         <label class="form-label"><?= $lang['label_device_preview'] ?? 'Device Preview' ?></label>
-                        <div class="device-switcher" style="display: flex; gap: 8px; flex-wrap: wrap;">
-                            <button type="button" class="btn-device" onclick="setDevicePreview(this, 1)" title="Smartphones (≤ 480px) - Max 1 kolom">
-                                <svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title_smartphone"><title id="title_smartphone">Smartphones</title><circle cx="32" cy="32" r="30" fill="#F3E7D8"/><rect x="20" y="12" width="24" height="40" rx="3" ry="3" fill="#FFFFFF"/><rect x="30" y="14" width="4" height="2" rx="1" ry="1" fill="#D0C4B5"/></svg>
-                            </button>
-                            <button type="button" class="btn-device" onclick="setDevicePreview(this, 2)" title="Kleine tablets (≥ 768px) - Max 2 kolommen">
-                                <svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title_tablet_small"><title id="title_tablet_small">Kleine tablets</title><circle cx="32" cy="32" r="30" fill="#F3E7D8"/><rect x="18" y="16" width="28" height="32" rx="4" ry="4" fill="#FFFFFF"/><circle cx="32" cy="45" r="1.5" fill="#D0C4B5"/></svg>
-                            </button>
-                            <button type="button" class="btn-device" onclick="setDevicePreview(this, 3)" title="Grote tablets / kleine laptops (≥ 1024px) - Max 3 kolommen">
-                                <svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title_tablet_big"><title id="title_tablet_big">Grote tablets / kleine laptops</title><circle cx="32" cy="32" r="30" fill="#F3E7D8"/><rect x="16" y="18" width="32" height="24" rx="4" ry="4" fill="#FFFFFF"/><rect x="16" y="44" width="32" height="4" rx="2" ry="2" fill="#D0C4B5"/></svg>
-                            </button>
-                            <button type="button" class="btn-device" onclick="setDevicePreview(this, 4)" title="Laptops / desktops (≥ 1280px) - Max 4 kolommen">
-                                <svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title_pc_small"><title id="title_pc_small">Laptops / desktops</title><circle cx="32" cy="32" r="30" fill="#F3E7D8"/><rect x="14" y="18" width="36" height="22" rx="3" ry="3" fill="#FFFFFF"/><rect x="22" y="42" width="20" height="3" rx="1.5" ry="1.5" fill="#D0C4B5"/><rect x="26" y="45" width="12" height="3" rx="1.5" ry="1.5" fill="#D0C4B5"/></svg>
-                            </button>
-                            <button type="button" class="btn-device active" onclick="setDevicePreview(this, 12)" title="Grote schermen (≥ 1536px) - Max 12 kolommen">
-                                <svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title_pc_big"><title id="title_pc_big">Grote schermen</title><circle cx="32" cy="32" r="30" fill="#F3E7D8"/><rect x="12" y="18" width="40" height="24" rx="3" ry="3" fill="#FFFFFF"/><rect x="26" y="44" width="12" height="3" rx="1.5" ry="1.5" fill="#D0C4B5"/><rect x="22" y="47" width="20" height="3" rx="1.5" ry="1.5" fill="#D0C4B5"/></svg>
-                            </button>
-                        </div>
+                        <?php include __DIR__ . '/partials/device_switcher.php'; ?>
                     </div>
                 </div>
 
@@ -267,20 +195,20 @@ $nav_back_to_dashboard = $lang['nav_back_to_dashboard'] ?? 'Terug naar Dashboard
         let state = <?= $layoutJson ?>;
 
         const contentTypes = [
-            { id: 'text', name: '<?= $lang['type_text'] ?? 'Tekst' ?>', icon: '📝' },
-            { id: 'image', name: '<?= $lang['type_image'] ?? 'Afbeelding' ?>', icon: '🖼️' },
-            { id: 'video', name: '<?= $lang['type_video'] ?? 'Video' ?>', icon: '🎬' },
-            { id: 'form', name: '<?= $lang['type_form'] ?? 'Formulier' ?>', icon: '📩' },
-            { id: 'cta', name: '<?= $lang['type_cta'] ?? 'Call to Action' ?>', icon: '🎯' },
-            { id: 'usps', name: '<?= $lang['type_usps'] ?? "USP's" ?>', icon: '🚀' },
-            { id: 'blog', name: '<?= $lang['type_blog'] ?? 'Blogoverzicht' ?>', icon: '✍️' },
-            { id: 'products', name: '<?= $lang['type_products'] ?? 'Productoverzicht' ?>', icon: '🛍️' },
-            { id: 'map', name: '<?= $lang['type_map'] ?? 'Kaart' ?>', icon: '📍' },
-            { id: 'html', name: '<?= $lang['type_html'] ?? 'Custom HTML' ?>', icon: '💻' },
-            { id: 'language', name: '<?= $lang['type_language'] ?? 'Taal Selectie' ?>', icon: '🌐' },
-            { id: 'logo', name: '<?= $lang['type_logo'] ?? 'Logo' ?>', icon: '✨' },
-            { id: 'menu', name: '<?= $lang['type_menu'] ?? 'Menu' ?>', icon: '☰' },
-            { id: 'empty', name: '<?= $lang['type_empty'] ?? 'Leeg Vlak' ?>', icon: '⬜' }
+            { id: 'text', name: '<?= $lang['type_text_html'] ?? 'Tekst / HTML' ?>', icon: '📝', hasLabel: true },
+            { id: 'image', name: '<?= $lang['type_image'] ?? 'Afbeelding' ?>', icon: '🖼️', hasLabel: true },
+            { id: 'video', name: '<?= $lang['type_video'] ?? 'Video' ?>', icon: '🎬', hasLabel: true },
+            { id: 'form', name: '<?= $lang['type_form'] ?? 'Formulier' ?>', icon: '📩', hasLabel: true },
+            { id: 'cta', name: '<?= $lang['type_cta'] ?? 'Call to Action' ?>', icon: '🎯', hasLabel: true },
+            { id: 'usps', name: '<?= $lang['label_block_usps'] ?? "USP Blok" ?>', icon: '🚀', hasLabel: true },
+            { id: 'usp_card', name: '<?= $lang['label_block_usp_card'] ?? "USP Kaart" ?>', icon: '🃏', hasLabel: true },
+            { id: 'blog', name: '<?= $lang['type_blog'] ?? 'Blogoverzicht' ?>', icon: '✍️', hasLabel: true },
+            { id: 'products', name: '<?= $lang['type_products'] ?? 'Productoverzicht' ?>', icon: '🛍️', hasLabel: true },
+            { id: 'map', name: '<?= $lang['type_map'] ?? 'Kaart' ?>', icon: '📍', hasLabel: true },
+            { id: 'language', name: '<?= $lang['type_language'] ?? 'Taal Selectie' ?>', icon: '🌐', hasLabel: true },
+            { id: 'logo', name: '<?= $lang['type_logo'] ?? 'Logo' ?>', icon: '✨', hasLabel: true },
+            { id: 'menu', name: '<?= $lang['type_menu'] ?? 'Menu' ?>', icon: '☰', hasLabel: true },
+            { id: 'empty', name: '<?= $lang['type_empty'] ?? 'Leeg Vlak' ?>', icon: '⬜', hasLabel: false }
         ];
 
         const labels = {
@@ -291,7 +219,18 @@ $nav_back_to_dashboard = $lang['nav_back_to_dashboard'] ?? 'Terug naar Dashboard
             rowColumns: '<?= $lang['label_row_columns'] ?? 'Rij %d kolommen' ?>',
             columnType: '<?= $lang['label_column_type'] ?? 'Kolom %d type' ?>',
             column: '<?= $lang['label_column'] ?? 'Kolom' ?>',
-            columns: '<?= $lang['label_columns'] ?? 'Kolommen' ?>'
+            columns: '<?= $lang['label_columns'] ?? 'Kolommen' ?>',
+            confirmDeleteEverywhere: '<?= $lang['confirm_delete_everywhere'] ?? 'Wilt u dit item overal verwijderen?' ?>',
+            btnDeleteEverywhere: '<?= $lang['btn_delete_everywhere'] ?? 'Overal verwijderen' ?>',
+            btnHideHere: '<?= $lang['btn_hide_here'] ?? 'Verwijder op huidig niveau' ?>',
+            btnCancel: '<?= $lang['btn_cancel'] ?? 'Annuleren' ?>',
+            itemLabel: '<?= $lang['label_item_label'] ?? 'Item Label' ?>',
+            uspVariant: '<?= $lang['label_usp_variant'] ?? 'USP Variant' ?>',
+            uspBlock: '<?= $lang['option_usp_block'] ?? 'Standaard Blok' ?>',
+            uspCard: '<?= $lang['option_usp_card'] ?? 'Kaart (Card)' ?>',
+            orientation: '<?= $lang['label_usp_orientation'] ?? 'Oriëntatie' ?>',
+            horizontal: '<?= $lang['option_horizontal'] ?? 'Naast elkaar' ?>',
+            vertical: '<?= $lang['option_vertical'] ?? 'Onder elkaar' ?>'
         };
 
         function init() {
@@ -411,12 +350,13 @@ $nav_back_to_dashboard = $lang['nav_back_to_dashboard'] ?? 'Terug naar Dashboard
             
             const canvas = document.getElementById('previewCanvas');
             if (canvas) {
-                let w = '90%';
-                if (maxCols === 1) w = '18%';
-                else if (maxCols === 2) w = '36%';
-                else if (maxCols === 3) w = '54%';
-                else if (maxCols === 4) w = '72%';
-                else w = '90%';
+                let w = '100%';
+                if (maxCols === 1) w = '640px';
+                else if (maxCols === 2) w = '768px';
+                else if (maxCols === 3) w = '1024px';
+                else if (maxCols === 4) w = '1280px';
+                else if (maxCols === 6) w = '1440px';
+                else w = '100%';
                 canvas.style.width = w;
             }
             
@@ -504,6 +444,74 @@ $nav_back_to_dashboard = $lang['nav_back_to_dashboard'] ?? 'Terug naar Dashboard
             renderPreview();
         }
 
+        function removeColumn(rowIndex, colIndex) {
+            confirmDelete(() => {
+                state.main.rows[rowIndex].columns.splice(colIndex, 1);
+                if (state.main.rows[rowIndex].columns.length === 0) {
+                    state.main.rows.splice(rowIndex, 1);
+                }
+            }, (val) => {
+                setColDeviceWidth(rowIndex, colIndex, val);
+            });
+        }
+
+        function removeHeaderSection(index) {
+            confirmDelete(() => {
+                state.header.sections.splice(index, 1);
+                const countInput = document.getElementById('headerCount');
+                if (countInput) countInput.value = state.header.sections.length;
+            }, (val) => {
+                setHeaderSectionDeviceWidth(index, val);
+            });
+        }
+
+        function removeFooterSection(index) {
+            confirmDelete(() => {
+                state.footer.sections.splice(index, 1);
+                const countInput = document.getElementById('footerCount');
+                if (countInput) countInput.value = state.footer.sections.length;
+            }, (val) => {
+                setFooterSectionDeviceWidth(index, val);
+            });
+        }
+
+        function confirmDelete(onDeleteEverywhere, onHideHere) {
+            // If we are on the base layout (12 cols), we still ask but emphasize global deletion
+            const modal = document.createElement('div');
+            modal.style = "position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; z-index:10000; backdrop-filter:blur(4px);";
+            modal.innerHTML = `
+                <div style="background:white; padding:30px; border-radius:24px; max-width:450px; width:90%; box-shadow:0 20px 50px rgba(0,0,0,0.2); text-align:center; animation:modalIn 0.3s ease-out;">
+                    <div style="font-size:3rem; margin-bottom:15px;">🗑️</div>
+                    <h3 style="margin-bottom:15px; font-family:'Outfit', sans-serif;">${labels.confirmDeleteEverywhere}</h3>
+                    <div style="display:flex; flex-direction:column; gap:10px;">
+                        <button id="btn-del-everywhere" class="btn-save" style="background:var(--accent-pink); width:100%;">${labels.btnDeleteEverywhere}</button>
+                        <button id="btn-hide-here" class="btn-add" style="width:100%; margin:0;">${labels.btnHideHere}</button>
+                        <button id="btn-cancel-del" style="background:transparent; border:none; color:var(--text-muted); cursor:pointer; padding:10px;">${labels.btnCancel}</button>
+                    </div>
+                </div>
+                <style>
+                    @keyframes modalIn { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+                </style>
+            `;
+            document.body.appendChild(modal);
+
+            modal.querySelector('#btn-del-everywhere').onclick = () => {
+                onDeleteEverywhere();
+                modal.remove();
+                renderConfig();
+                renderPreview();
+            };
+            modal.querySelector('#btn-hide-here').onclick = () => {
+                onHideHere(0);
+                modal.remove();
+                renderConfig();
+                renderPreview();
+            };
+            modal.querySelector('#btn-cancel-del').onclick = () => {
+                modal.remove();
+            };
+        }
+
         function moveRow(index, direction) {
             const newIndex = index + direction;
             if (newIndex < 0 || newIndex >= state.main.rows.length) return;
@@ -527,7 +535,7 @@ $nav_back_to_dashboard = $lang['nav_back_to_dashboard'] ?? 'Terug naar Dashboard
             let row = state.main.rows[rowIndex];
             
             while (row.columns.length < count) {
-                row.columns.push({ type: 'text', width: 1 });
+                row.columns.push({ type: 'text', width: 1, label: 'Nieuw Item' });
             }
             while (row.columns.length > count) {
                 row.columns.pop();
@@ -536,6 +544,7 @@ $nav_back_to_dashboard = $lang['nav_back_to_dashboard'] ?? 'Terug naar Dashboard
             const defaultWidth = Math.floor(12 / count);
             row.columns.forEach((col, i) => {
                 col.width = defaultWidth;
+                if (!col.label) col.label = 'Item ' + (i + 1);
             });
 
             const currentSum = row.columns.reduce((sum, col) => sum + col.width, 0);
@@ -544,6 +553,16 @@ $nav_back_to_dashboard = $lang['nav_back_to_dashboard'] ?? 'Terug naar Dashboard
             }
 
             renderConfig();
+            renderPreview();
+        }
+
+        function updateColLabel(rowIndex, colIndex, val) {
+            state.main.rows[rowIndex].columns[colIndex].label = val;
+            renderPreview();
+        }
+
+        function updateUSPProperty(rowIndex, colIndex, prop, val) {
+            state.main.rows[rowIndex].columns[colIndex][prop] = val;
             renderPreview();
         }
 
@@ -558,7 +577,19 @@ $nav_back_to_dashboard = $lang['nav_back_to_dashboard'] ?? 'Terug naar Dashboard
         }
 
         function updateColType(rowIndex, colIndex, type) {
-            state.main.rows[rowIndex].columns[colIndex].type = type;
+            const col = state.main.rows[rowIndex].columns[colIndex];
+            col.type = type;
+            if (type === 'usps') {
+                col.variant = 'block';
+                col.orientation = 'horizontal';
+            } else if (type === 'usp_card') {
+                col.variant = 'card';
+            }
+            if (!col.label || col.label.startsWith('Item')) {
+                const info = contentTypes.find(ct => ct.id === type);
+                col.label = info ? info.name : 'Nieuw Item';
+            }
+            renderConfig();
             renderPreview();
         }
 
@@ -609,7 +640,7 @@ $nav_back_to_dashboard = $lang['nav_back_to_dashboard'] ?? 'Terug naar Dashboard
                         <select class="form-select" id="config-header-${i}" onchange="updateSectionType('header', ${i}, this.value)" style="flex:1;">
                             ${renderOptions(sec.type)}
                         </select>
-                        <button class="btn-action remove" onclick="updateSectionType('header', ${i}, 'empty'); renderConfig();" title="Item leegmaken" style="padding: 0 8px;">🗑️</button>
+                        <button class="btn-action remove" onclick="removeHeaderSection(${i})" title="${labels.remove || 'Verwijderen'}" style="padding: 0 8px;">🗑️</button>
                     </div>
                 </div>`;
             });
@@ -647,26 +678,55 @@ $nav_back_to_dashboard = $lang['nav_back_to_dashboard'] ?? 'Terug naar Dashboard
                     </div>
                     <div class="cols-container">
                         ${row.columns.map((col, ci) => {
+                            const ctInfo = contentTypes.find(ct => ct.id === col.type);
+                            const canRowSpan = col.type === 'image' || col.type === 'menu';
+                            
                             return `
                                 <div class="col-item" id="config-container-row-${ri}-col-${ci}">
-                                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                                        <label class="form-label" style="font-size: 0.75rem;">${labels.columnType.replace('%d', ci + 1)}</label>
+                                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                                        <label class="form-label" style="font-size: 0.75rem; margin:0;">${labels.columnType.replace('%d', ci + 1)}</label>
                                         <div style="display:flex; align-items:center; gap:5px;">
                                             <span style="font-size:1.4rem; line-height:1; color:var(--text-muted);">↔️</span>
                                             <select class="form-select" style="width:80px; padding:2px 4px; font-size:0.75rem;" onchange="setColDeviceWidth(${ri}, ${ci}, this.value)">
                                                 ${getDeviceWidthOptions(col, currentMaxCols)}
                                             </select>
-                                            <span style="font-size:1.4rem; line-height:1; color:var(--text-muted); margin-left:5px;">↕️</span>
-                                            <select class="form-select" style="width:50px; padding:2px 4px; font-size:0.75rem;" onchange="updateColRowSpan(${ri}, ${ci}, this.value)">
-                                                ${([...Array(state.main.rows.length - ri).keys()].map(x => x + 1)).map(rs => `<option value="${rs}" ${col.rowSpan == rs ? 'selected' : ''}>${rs}</option>`).join('')}
+                                            <span style="font-size:1.4rem; line-height:1; color:var(--text-muted); margin-left:5px; opacity:${canRowSpan ? '1':'0.3'};">↕️</span>
+                                            <select class="form-select" style="width:50px; padding:2px 4px; font-size:0.75rem;" onchange="updateColRowSpan(${ri}, ${ci}, this.value)" ${canRowSpan ? '' : 'disabled'}>
+                                                ${canRowSpan 
+                                                    ? ([...Array(state.main.rows.length - ri).keys()].map(x => x + 1)).map(rs => `<option value="${rs}" ${col.rowSpan == rs ? 'selected' : ''}>${rs}</option>`).join('')
+                                                    : '<option value="1">1</option>'
+                                                }
                                             </select>
                                         </div>
                                     </div>
-                                    <div style="display:flex; gap:5px;">
-                                        <select class="form-select" id="config-row-${ri}-col-${ci}" onchange="updateColType(${ri}, ${ci}, this.value)" style="flex:1;">
+                                    
+                                    <div class="form-group" style="margin-bottom:10px;">
+                                        <select class="form-select" id="config-row-${ri}-col-${ci}" onchange="updateColType(${ri}, ${ci}, this.value)" style="width:100%;">
                                             ${renderOptions(col.type)}
                                         </select>
-                                        <button class="btn-action remove" onclick="updateColType(${ri}, ${ci}, 'empty'); renderConfig();" title="Item leegmaken" style="padding: 0 8px;">🗑️</button>
+                                    </div>
+
+                                    ${ctInfo && ctInfo.hasLabel ? `
+                                        <div class="form-group" style="margin-bottom:10px;">
+                                            <input type="text" class="form-input" style="font-size:0.8rem; padding:4px 8px;" placeholder="${labels.itemLabel}" value="${col.label || ''}" oninput="updateColLabel(${ri}, ${ci}, this.value)">
+                                        </div>
+                                    ` : ''}
+
+                                    ${(col.type === 'usps' || col.type === 'usp_card') ? `
+                                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px;">
+                                            <select class="form-select" style="font-size:0.75rem; padding:2px 4px;" onchange="updateUSPProperty(${ri}, ${ci}, 'variant', this.value)">
+                                                <option value="block" ${col.variant === 'block' ? 'selected' : ''}>${labels.uspBlock}</option>
+                                                <option value="card" ${col.variant === 'card' ? 'selected' : ''}>${labels.uspCard}</option>
+                                            </select>
+                                            <select class="form-select" style="font-size:0.75rem; padding:2px 4px;" onchange="updateUSPProperty(${ri}, ${ci}, 'orientation', this.value)" ${col.variant === 'card' ? 'disabled' : ''}>
+                                                <option value="horizontal" ${col.orientation === 'horizontal' ? 'selected' : ''}>${labels.horizontal}</option>
+                                                <option value="vertical" ${col.orientation === 'vertical' ? 'selected' : ''}>${labels.vertical}</option>
+                                            </select>
+                                        </div>
+                                    ` : ''}
+
+                                    <div style="display:flex; justify-content:flex-end;">
+                                        <button class="btn-action remove" onclick="removeColumn(${ri}, ${ci})" title="${labels.remove || 'Verwijderen'}" style="padding: 2px 8px; font-size:0.8rem;">🗑️ ${labels.remove}</button>
                                     </div>
                                 </div>
                             `;
@@ -710,7 +770,7 @@ $nav_back_to_dashboard = $lang['nav_back_to_dashboard'] ?? 'Terug naar Dashboard
                         <select class="form-select" id="config-footer-${i}" onchange="updateSectionType('footer', ${i}, this.value)" style="flex:1;">
                             ${renderOptions(sec.type)}
                         </select>
-                        <button class="btn-action remove" onclick="updateSectionType('footer', ${i}, 'empty'); renderConfig();" title="Item leegmaken" style="padding: 0 8px;">🗑️</button>
+                        <button class="btn-action remove" onclick="removeFooterSection(${i})" title="${labels.remove || 'Verwijderen'}" style="padding: 0 8px;">🗑️</button>
                     </div>
                 </div>`;
             });
@@ -738,48 +798,48 @@ $nav_back_to_dashboard = $lang['nav_back_to_dashboard'] ?? 'Terug naar Dashboard
             hEl.style.gap = '10px';
             hEl.style.minHeight = state.header.height || '90px';
             hEl.innerHTML = gridGuide + state.header.sections.map((sec, i) => {
-                let info = contentTypes.find(ct => ct.id === sec.type);
+                const info = contentTypes.find(ct => ct.id === sec.type);
                 const span = calcDeviceSpan(sec, mc);
+                if (span === 0) return '';
                 const rowSpan = sec.rowSpan || 1;
                 const isEmpty = sec.type === 'empty';
-                const isHidden = span === 0;
-                const colStyle = isHidden
-                    ? 'grid-column: span 1; grid-row: span 1; position: relative; z-index: 1;'
-                    : `grid-column: span ${span}; grid-row: span ${rowSpan}; position: relative; z-index: 1;`;
-                return `<div class="pv-col pv-compact ${isEmpty ? 'pv-empty' : ''} ${isHidden ? 'pv-hidden' : ''}" id="pv-header-${i}" style="${colStyle}" onclick="handlePreviewClick('header[${i}]', 'header-${i}')">
+                const colStyle = `grid-column: span ${span}; grid-row: span ${rowSpan}; position: relative; z-index: 1;`;
+                return `<div class="pv-col pv-compact ${isEmpty ? 'pv-empty' : ''}" id="pv-header-${i}" style="${colStyle}" onclick="handlePreviewClick('header.sections[${i}]', 'header-${i}')">
                         <span class="pv-col-icon">${info.icon}</span>
-                        <span class="pv-col-type">${isHidden ? 'VERBORGEN' : (isEmpty ? 'LEEG' : info.name)}</span>
-                        <span class="pv-dimensions">${isHidden ? '✕' : `${span} × ${rowSpan}`}</span>
+                        <span class="pv-col-type">${isEmpty ? 'LEEG' : info.name}</span>
+                        <span class="pv-dimensions">${span} × ${rowSpan}</span>
                     </div>`;
             }).join('');
 
             // Main Preview
             let mainEl = document.getElementById('pvMain');
-            mainEl.style.display = 'grid';
-            mainEl.style.gridTemplateColumns = `repeat(${mc}, 1fr)`;
-            mainEl.style.gridAutoRows = 'minmax(90px, auto)';
+            mainEl.style.display = 'flex';
+            mainEl.style.flexDirection = 'column';
             mainEl.style.gap = '10px';
             mainEl.style.position = 'relative';
-            // Remove fixed row template when on smaller devices so items wrap automatically
-            mainEl.style.gridTemplateRows = '';
             
-            let mHtml = gridGuide;
+            let mHtml = '';
             state.main.rows.forEach((row, ri) => {
+                let rowHtml = `<div class="pv-row" style="display: grid; grid-template-columns: repeat(${mc}, 1fr); grid-auto-rows: minmax(90px, auto); gap: 10px; position: relative;">`;
+                rowHtml += gridGuide;
                 row.columns.forEach((col, ci) => {
-                    let info = contentTypes.find(ct => ct.id === col.type);
+                    const info = contentTypes.find(ct => ct.id === col.type);
                     const span = calcDeviceSpan(col, mc);
+                    if (span === 0) return;
                     const rowSpan = col.rowSpan || 1;
                     const isEmpty = col.type === 'empty';
-                    const isHidden = span === 0;
-                    const style = isHidden
-                        ? 'grid-column: span 1; grid-row: span 1; position: relative; z-index: 1; height: 100%;'
-                        : `grid-column: span ${span}; grid-row: span ${rowSpan}; position: relative; z-index: 1; height: 100%;`;
-                    mHtml += `<div class="pv-col ${isEmpty ? 'pv-empty' : ''} ${isHidden ? 'pv-hidden' : ''}" id="pv-row-${ri}-col-${ci}" style="${style}" onclick="handlePreviewClick('content[${ri}][${ci}]', 'row-${ri}-col-${ci}')">
-                            <span class="pv-col-icon">${info.icon}</span>
-                            <span class="pv-col-type">${isHidden ? 'VERBORGEN' : (isEmpty ? 'LEEG' : info.name)}</span>
-                            <span class="pv-dimensions">${isHidden ? '✕' : `${span} × ${rowSpan}`}</span>
+                    const style = `grid-column: span ${span}; grid-row: span ${rowSpan}; position: relative; z-index: 1; height: 100%;`;
+                    rowHtml += `<div class="pv-col ${isEmpty ? 'pv-empty' : ''}" id="pv-row-${ri}-col-${ci}" style="${style}" onclick="handlePreviewClick('content[${ri}][${ci}]', 'row-${ri}-col-${ci}')">
+                            <div class="pv-label" style="position:absolute; top:0; left:0; right:0; background:rgba(0,0,0,0.05); padding:2px 5px; font-size:0.65rem; font-weight:700; color:rgba(0,0,0,0.4); overflow:hidden; white-space:nowrap; text-overflow:ellipsis; display:${isEmpty ? 'none' : 'block'};">
+                                ${col.label || info.name}
+                            </div>
+                            <span class="pv-col-icon" style="${!isEmpty ? 'margin-top:10px;' : ''}">${info.icon}</span>
+                            <span class="pv-col-type">${isEmpty ? 'LEEG' : info.name}</span>
+                            <span class="pv-dimensions">${span} × ${rowSpan}</span>
                         </div>`;
                 });
+                rowHtml += `</div>`;
+                mHtml += rowHtml;
             });
             mainEl.innerHTML = mHtml;
 
@@ -792,18 +852,16 @@ $nav_back_to_dashboard = $lang['nav_back_to_dashboard'] ?? 'Terug naar Dashboard
             fEl.style.gap = '10px';
             fEl.style.minHeight = state.footer.height || '120px';
             fEl.innerHTML = gridGuide + state.footer.sections.map((sec, i) => {
-                let info = contentTypes.find(ct => ct.id === sec.type);
+                const info = contentTypes.find(ct => ct.id === sec.type);
                 const span = calcDeviceSpan(sec, mc);
+                if (span === 0) return '';
                 const rowSpan = sec.rowSpan || 1;
                 const isEmpty = sec.type === 'empty';
-                const isHidden = span === 0;
-                const colStyle = isHidden
-                    ? 'grid-column: span 1; grid-row: span 1; position: relative; z-index: 1;'
-                    : `grid-column: span ${span}; grid-row: span ${rowSpan}; position: relative; z-index: 1;`;
-                return `<div class="pv-col pv-compact ${isEmpty ? 'pv-empty' : ''} ${isHidden ? 'pv-hidden' : ''}" id="pv-footer-${i}" style="${colStyle}" onclick="handlePreviewClick('footer[${i}]', 'footer-${i}')">
+                const colStyle = `grid-column: span ${span}; grid-row: span ${rowSpan}; position: relative; z-index: 1;`;
+                return `<div class="pv-col pv-compact ${isEmpty ? 'pv-empty' : ''}" id="pv-footer-${i}" style="${colStyle}" onclick="handlePreviewClick('footer.sections[${i}]', 'footer-${i}')">
                         <span class="pv-col-icon">${info.icon}</span>
-                        <span class="pv-col-type">${isHidden ? 'VERBORGEN' : (isEmpty ? 'LEEG' : info.name)}</span>
-                        <span class="pv-dimensions">${isHidden ? '✕' : `${span} × ${rowSpan}`}</span>
+                        <span class="pv-col-type">${isEmpty ? 'LEEG' : info.name}</span>
+                        <span class="pv-dimensions">${span} × ${rowSpan}</span>
                     </div>`;
             }).join('');
         }

@@ -3,6 +3,7 @@ $layout = $homepageLayout;
 $selectedLang = $_SESSION['lang'] ?? 'nl';
 $pageDataRaw = json_decode($page['content'] ?? '{}', true);
 $pageData = $pageDataRaw[$selectedLang] ?? $pageDataRaw['nl'] ?? $pageDataRaw['en'] ?? $pageDataRaw;
+$GLOBALS['allPagesFront'] = $allPages ?? [];
 
 function getDeepValue($obj, $path)
 {
@@ -25,9 +26,16 @@ function renderBlock($type, $path, $pageData, $settings)
 
     switch ($type) {
         case 'text':
+        case 'html':
             $title = $data['title'] ?? '';
-            $text  = $data['text']  ?? '';
-            return "<div>" . ($title ? "<h1>" . htmlspecialchars($title) . "</h1>" : "") . "<div>" . $text . "</div></div>";
+            $text  = $data['text']  ?? $data['code'] ?? '';
+            // If it is just a string, handle it (for potential direct HTML injection)
+            if (is_string($data)) $text = $data;
+            
+            $html = "";
+            if ($title) $html .= "<h1>" . htmlspecialchars($title) . "</h1>";
+            $html .= "<div>" . $text . "</div>";
+            return "<div>" . $html . "</div>";
 
         case 'image':
             $url = $data['url'] ?? '';
@@ -50,10 +58,23 @@ function renderBlock($type, $path, $pageData, $settings)
             return '<img src="' . htmlspecialchars($url) . '" alt="Logo" class="logo">';
 
         case 'menu':
-            $items = explode(',', $data['items'] ?? 'Home, Over ons, Contact');
+            $pagesList = $GLOBALS['allPagesFront'] ?? [];
+            
+            $itemsData = trim($data['items'] ?? '');
+            if ($itemsData !== '') {
+                $items = array_map('trim', explode(',', $itemsData));
+            } else {
+                $items = array_map(fn($p) => trim($p['title']), $pagesList);
+            }
+            $items = array_filter($items, 'strlen');
+
+            if (count($pagesList) <= 1 || count($items) === 0) {
+                return '';
+            }
+
             $html  = '<nav style="display:flex; gap:20px;">';
             foreach ($items as $item) {
-                $html .= '<a href="#" style="text-decoration:none; color:inherit; font-weight:600;">' . htmlspecialchars(trim($item)) . '</a>';
+                $html .= '<a href="#" style="text-decoration:none; color:inherit; font-weight:600;">' . htmlspecialchars($item) . '</a>';
             }
             return $html . '</nav>';
 
@@ -71,11 +92,46 @@ function renderBlock($type, $path, $pageData, $settings)
                 $data['usp_2'] ?? ($lang['usp_2_default'] ?? 'Veiligheid'),
                 $data['usp_3'] ?? ($lang['usp_3_default'] ?? 'Kwaliteit'),
             ];
-            $html = '<div class="type-usp-grid">';
-            foreach ($usps as $usp) {
-                $html .= '<div class="usp-card">' . htmlspecialchars($usp) . '</div>';
+            
+            $parts = explode('.', $path);
+            $layoutObj = $GLOBALS['homepageLayout'] ?? [];
+            foreach($parts as $p) {
+                if (isset($layoutObj[$p])) $layoutObj = $layoutObj[$p];
+                else { $layoutObj = []; break; }
+            }
+            
+            $variant = $layoutObj['variant'] ?? 'block';
+            $orientation = $layoutObj['orientation'] ?? 'horizontal';
+            
+            if ($variant === 'card') {
+                $html = '<div class="type-usp-grid type-usp-cards">';
+                foreach ($usps as $usp) {
+                    $html .= '<div class="usp-card">' . htmlspecialchars($usp) . '</div>';
+                }
+            } else {
+                $dir = ($orientation === 'vertical') ? 'column' : 'row';
+                $html = '<div class="type-usp-grid type-usp-blocks" style="flex-direction:' . $dir . '; display:flex; gap:20px;">';
+                foreach ($usps as $usp) {
+                    $html .= '<div class="usp-block" style="background:#fff; padding:15px 25px; border-radius:15px; box-shadow:0 5px 15px rgba(0,0,0,0.02); font-weight:600;">' . htmlspecialchars($usp) . '</div>';
+                }
             }
             return $html . '</div>';
+
+        case 'usp_card':
+            $img   = $data['url']   ?? '';
+            $title = $data['title'] ?? 'USP Kop';
+            $text  = $data['text']  ?? 'USP Uitleg';
+            
+            $html = '<div class="usp-card-modern" style="background:white; border-radius:30px; padding:40px; text-align:center; box-shadow:0 20px 40px rgba(0,0,0,0.03); border:1px solid #f1f5f9; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center;">';
+            if ($img) {
+                $html .= '<div style="width:80px; height:80px; margin-bottom:25px; display:flex; align-items:center; justify-content:center; background:#f8fafc; border-radius:20px; padding:15px;">';
+                $html .= '<img src="' . htmlspecialchars($img) . '" style="max-width:100%; max-height:100%; object-fit:contain;">';
+                $html .= '</div>';
+            }
+            $html .= '<h3 style="font-family:\'Outfit\',sans-serif; font-size:1.5rem; color:var(--primary); margin-bottom:15px; line-height:1.2;">' . htmlspecialchars($title) . '</h3>';
+            $html .= '<p style="color:var(--muted); font-size:1.1rem; line-height:1.6; margin:0; max-height: 100px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical;">' . htmlspecialchars($text) . '</p>';
+            $html .= '</div>';
+            return $html;
 
         case 'socials':
             $fb   = $data['facebook']  ?? '';
@@ -89,9 +145,6 @@ function renderBlock($type, $path, $pageData, $settings)
             $url = $data['url'] ?? '';
             return '<div style="background:linear-gradient(135deg,#1A1336,#3B2A8C);padding:80px;text-align:center;color:white;border-radius:24px;font-weight:700;">▶ Video Placeholder'
                  . ($url ? '<br><small style="font-weight:400;opacity:0.7;">' . htmlspecialchars($url) . '</small>' : '') . '</div>';
-
-        case 'html':
-            return $data['code'] ?? '';
 
         case 'map':
             $addr = $data['address'] ?? 'Locatie';
@@ -111,11 +164,12 @@ function renderBlock($type, $path, $pageData, $settings)
  *   value = [CSS media condition string,  total grid columns for that device]
  */
 $deviceBreakpoints = [
-    12 => ['min-width: 1536px',                            12],
-    4  => ['max-width: 1535px) and (min-width: 1280px',    4],
-    3  => ['max-width: 1279px) and (min-width: 1024px',    3],
-    2  => ['max-width: 1023px) and (min-width: 481px',     2],
-    1  => ['max-width: 480px',                              1],
+    12 => ['min-width: 1536px',                           12],
+    6  => ['max-width: 1535px) and (min-width: 1440px',    6],
+    4  => ['max-width: 1439px) and (min-width: 1280px',    4],
+    3  => ['max-width: 1279px) and (min-width: 1024px',   3],
+    2  => ['max-width: 1023px) and (min-width: 641px',     2],
+    1  => ['max-width: 640px',                              1],
 ];
 
 /**
@@ -195,41 +249,44 @@ foreach ($layout['footer']['sections'] ?? [] as $i => $sec) {
             --accent:  #E8186A;
             --text:    #1A1336;
             --muted:   #64748b;
-            --bg:      #f8fafc;
+            --bg:      #F6F5FF;
             --accent-gradient: linear-gradient(135deg, #E8186A 0%, #C41257 40%, #F0961B 100%);
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
 
-        .container { max-width: 1200px; margin: 0 auto; }
-        @media (max-width: 1240px) { .container { padding: 0 16px; } }
+        .container { width: 100%; max-width: 100%; padding: 0 40px; margin: 0 auto; }
 
         /* ── Header ──────────────────────────────────────────── */
         header { background: #fff; border-bottom: 1px solid #e2e8f0; }
         .header-inner { display: grid; gap: 20px 40px; align-items: center; }
         @media (min-width: 1536px)                         { .header-inner { grid-template-columns: repeat(12, 1fr); } }
-        @media (max-width: 1535px) and (min-width: 1280px) { .header-inner { grid-template-columns: repeat(4,  1fr); } }
+        @media (max-width: 1535px) and (min-width: 1440px) { .header-inner { grid-template-columns: repeat(6,  1fr); } }
+        @media (max-width: 1439px) and (min-width: 1280px) { .header-inner { grid-template-columns: repeat(4,  1fr); } }
         @media (max-width: 1279px) and (min-width: 1024px) { .header-inner { grid-template-columns: repeat(3,  1fr); } }
-        @media (max-width: 1023px) and (min-width: 481px)  { .header-inner { grid-template-columns: repeat(2,  1fr); } }
-        @media (max-width: 480px)                          { .header-inner { grid-template-columns: repeat(1,  1fr); } }
+        @media (max-width: 1023px) and (min-width: 641px)  { .header-inner { grid-template-columns: repeat(2,  1fr); } }
+        @media (max-width: 640px)                          { .header-inner { grid-template-columns: repeat(1,  1fr); } }
         .h-section { display: flex; align-items: center; gap: 20px; }
 
         /* ── Main ────────────────────────────────────────────── */
-        main.grid-main { display: grid; gap: 80px 40px; margin-bottom: 80px; padding: 60px 0; }
-        @media (min-width: 1536px)                         { main.grid-main { grid-template-columns: repeat(12, 1fr); } }
-        @media (max-width: 1535px) and (min-width: 1280px) { main.grid-main { grid-template-columns: repeat(4,  1fr); } }
-        @media (max-width: 1279px) and (min-width: 1024px) { main.grid-main { grid-template-columns: repeat(3,  1fr); } }
-        @media (max-width: 1023px) and (min-width: 481px)  { main.grid-main { grid-template-columns: repeat(2,  1fr); } }
-        @media (max-width: 480px)                          { main.grid-main { grid-template-columns: repeat(1,  1fr); } }
+        .main-rows-wrapper { display: flex; flex-direction: column; gap: 40px; padding: 60px 0; }
+        .grid-main { display: grid; gap: 40px 40px; }
+        @media (min-width: 1536px)                         { .grid-main { grid-template-columns: repeat(12, 1fr); } }
+        @media (max-width: 1535px) and (min-width: 1440px) { .grid-main { grid-template-columns: repeat(6,  1fr); } }
+        @media (max-width: 1439px) and (min-width: 1280px) { .grid-main { grid-template-columns: repeat(4,  1fr); } }
+        @media (max-width: 1279px) and (min-width: 1024px) { .grid-main { grid-template-columns: repeat(3,  1fr); } }
+        @media (max-width: 1023px) and (min-width: 641px)  { .grid-main { grid-template-columns: repeat(2,  1fr); } }
+        @media (max-width: 640px)                          { .grid-main { grid-template-columns: repeat(1,  1fr); } }
 
         /* ── Footer ──────────────────────────────────────────── */
         footer { background: #1A1336; color: white; padding: 80px 0; margin-top: 80px; }
         .footer-inner { display: grid; gap: 20px 40px; }
         @media (min-width: 1536px)                         { .footer-inner { grid-template-columns: repeat(12, 1fr); } }
-        @media (max-width: 1535px) and (min-width: 1280px) { .footer-inner { grid-template-columns: repeat(4,  1fr); } }
+        @media (max-width: 1535px) and (min-width: 1440px) { .footer-inner { grid-template-columns: repeat(6,  1fr); } }
+        @media (max-width: 1439px) and (min-width: 1280px) { .footer-inner { grid-template-columns: repeat(4,  1fr); } }
         @media (max-width: 1279px) and (min-width: 1024px) { .footer-inner { grid-template-columns: repeat(3,  1fr); } }
-        @media (max-width: 1023px) and (min-width: 481px)  { .footer-inner { grid-template-columns: repeat(2,  1fr); } }
-        @media (max-width: 480px)                          { .footer-inner { grid-template-columns: repeat(1,  1fr); } }
+        @media (max-width: 1023px) and (min-width: 641px)  { .footer-inner { grid-template-columns: repeat(2,  1fr); } }
+        @media (max-width: 640px)                          { .footer-inner { grid-template-columns: repeat(1,  1fr); } }
 
         /* ── Shared ──────────────────────────────────────────── */
         .logo { height: 40px; width: auto; object-fit: contain; }
@@ -259,21 +316,31 @@ foreach ($layout['footer']['sections'] ?? [] as $i => $sec) {
         <?php $headerHeight = $layout['header']['height'] ?? '90px'; ?>
         <div class="container header-inner" style="grid-auto-rows:min-content; min-height:<?= $headerHeight ?>; align-items:center;">
             <?php foreach ($layout['header']['sections'] ?? [] as $i => $sec): ?>
+                <?php 
+                    $blockContent = renderBlock($sec['type'], "header.sections.$i", $pageData, $settings); 
+                    if ($sec['type'] === 'menu' && empty(trim($blockContent))) continue;
+                ?>
                 <div class="h-section <?= $headerClasses[$i] ?>"
-                    style="display:flex; align-items:center; justify-content:<?= ($sec['width'] ?? 12) >= 12 ? 'center' : ($i % 3 === 0 ? 'flex-start' : ($i % 3 === 1 ? 'center' : 'flex-end')) ?>;">
-                    <?= renderBlock($sec['type'], "header.sections.$i", $pageData, $settings) ?>
+                    style="display:flex; align-items:center; justify-content:flex-start;">
+                    <?= $blockContent ?>
                 </div>
             <?php endforeach; ?>
         </div>
     </header>
 
-    <main class="container grid-main" style="grid-auto-rows:min-content;">
+    <main class="container main-rows-wrapper">
         <?php foreach ($layout['main']['rows'] ?? [] as $ri => $row): ?>
-            <?php foreach ($row['columns'] ?? [] as $ci => $col): ?>
-                <div class="col block-<?= $col['type'] ?> <?= $mainClasses[$ri][$ci] ?>">
-                    <?= renderBlock($col['type'], "main.rows.$ri.columns.$ci", $pageData, $settings) ?>
-                </div>
-            <?php endforeach; ?>
+            <div class="grid-main" style="grid-auto-rows:min-content;">
+                <?php foreach ($row['columns'] ?? [] as $ci => $col): ?>
+                    <?php 
+                        $blockContent = renderBlock($col['type'], "main.rows.$ri.columns.$ci", $pageData, $settings); 
+                        if ($col['type'] === 'menu' && empty(trim($blockContent))) continue;
+                    ?>
+                    <div class="col block-<?= $col['type'] ?> <?= $mainClasses[$ri][$ci] ?>">
+                        <?= $blockContent ?>
+                    </div>
+                <?php endforeach; ?>
+            </div>
         <?php endforeach; ?>
     </main>
 
@@ -281,8 +348,12 @@ foreach ($layout['footer']['sections'] ?? [] as $i => $sec) {
         <?php $footerHeight = $layout['footer']['height'] ?? '120px'; ?>
         <div class="container footer-inner" style="grid-auto-rows:min-content; min-height:<?= $footerHeight ?>;">
             <?php foreach ($layout['footer']['sections'] ?? [] as $i => $sec): ?>
+                <?php 
+                    $blockContent = renderBlock($sec['type'], "footer.sections.$i", $pageData, $settings); 
+                    if ($sec['type'] === 'menu' && empty(trim($blockContent))) continue;
+                ?>
                 <div class="f-section <?= $footerClasses[$i] ?>" style="display:flex; flex-direction:column; justify-content:flex-start;">
-                    <?= renderBlock($sec['type'], "footer.sections.$i", $pageData, $settings) ?>
+                    <?= $blockContent ?>
                 </div>
             <?php endforeach; ?>
         </div>

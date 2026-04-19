@@ -1,0 +1,321 @@
+/*
+ * ============================================================
+ *  Fritson CMS — Page Editor Specific Styles
+ *  File : public/assets/css/admin_pages.css
+ * ============================================================
+ */
+
+/* ── Topbar & Navigation ─────────────────────────────────── */
+.topbar-title {
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+.topbar-back-link {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+.hide {
+    display: none !important;
+}
+
+/* ── User Widget ─────────────────────────────────────────── */
+.user-widget .user-avatar {
+    width: 32px;
+    height: 32px;
+    background: var(--accent-gradient);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: white;
+}
+
+.user-widget .user-info {
+    display: flex;
+    flex-direction: column;
+    margin-left: 10px;
+}
+
+.user-widget .user-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.user-widget .user-role {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.user-menu hr {
+    margin: 5px 0;
+    border: none;
+    border-top: 1px solid var(--glass-border);
+}
+
+/* ── Layout & Content ────────────────────────────────────── */
+.main-content-header {
+    padding: 0;
+}
+
+.header-section-inner {
+    padding: 40px;
+    max-width: 1280px;
+    margin: 0 auto;
+}
+
+.editor-container-outer {
+    max-width: none;
+    width: 100%;
+}
+
+.editor-form-card {
+    max-width: 1200px;
+    margin: 0 auto 25px auto;
+    width: calc(100% - 80px);
+}
+
+/* ── Form Groups & Controls ──────────────────────────────── */
+.template-control-group {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+    align-items: center;
+}
+
+.btn-refresh-template-ui {
+    display: none;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    color: var(--text-muted);
+    padding: 5px 12px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-refresh-template-ui:hover {
+    background: var(--glass-border);
+}
+
+.template-refresh-hint-ui {
+    display: none;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+}
+
+.title-textarea-ui {
+    min-height: 45px;
+    resize: vertical;
+    padding-top: 10px;
+}
+
+.slug-tip-ui {
+    display: block;
+    margin-top: 5px;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+/* ── Device Preview ──────────────────────────────────────── */
+.device-preview-section {
+    display: none;
+    margin-top: 25px;
+    border-top: 1px solid var(--glass-border);
+    padding-top: 20px;
+}
+
+.device-preview-label-ui {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 600;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.device-switcher-ui {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+/* ── Visual Canvas ────────────────────────────────────────── */
+.visual-canvas {
+    --primary: #3B2A8C;
+    --accent: #E8186A;
+    --text: #1A1336;
+    --muted: #64748b;
+    --bg: #f8fafc;
+    --accent-gradient: linear-gradient(135deg, #E8186A 0%, #C41257 40%, #F0961B 100%);
+    
+    display: none;
+    width: 100%;
+    margin: 40px 0;
+    border-top: 1px solid var(--glass-border);
+    border-bottom: 1px solid var(--glass-border);
+    border-left: none;
+    border-right: none;
+    border-radius: 0;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    font-family: 'Inter', sans-serif;
+    overflow: hidden;
+}
+
+.vc-header { background: #fff; border-bottom: 1px solid #e2e8f0; }
+.vc-header-inner { min-height: 80px; height: auto; display: flex; align-items: center; justify-content: space-between; gap: 40px; }
+.vc-footer { background: var(--text); color: white; padding: 80px 0; margin-top: 80px; }
+.vc-footer-inner { display: grid; gap: 40px; }
+.vc-container { max-width: 1400px; margin: 0 auto; padding: 0 40px; width: 100%; }
+.vc-main { padding: 60px 0; }
+.vc-row { display: grid; gap: 40px; margin-bottom: 80px; align-items: center; }
+.vc-col { position: relative; border: 1px dashed transparent; min-height: 100px; transition: 0.3s; }
+.vc-col:hover { border-color: #cbd5e1; }
+.vc-h-section { display: flex; align-items: center; gap: 20px; flex: 1; }
+
+.vc-input-transparent {
+    width: 100%;
+    background: transparent;
+    border: 1px dashed #cbd5e1;
+    padding: 8px;
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+    border-radius: 4px;
+    transition: 0.2s;
+    resize: vertical;
+    min-height: 40px;
+}
+.vc-input-transparent:focus { border-color: var(--accent); outline: none; background: #fff; color: #1e293b; }
+
+.vc-cta-button { display: inline-block; background: var(--accent-gradient); color: white; border-radius: 50px; text-decoration: none; font-weight: 700; border: none; padding: 15px 35px; box-shadow: 0 10px 20px rgba(232, 24, 106, 0.2); transition: 0.3s; }
+.vc-img-preview { max-width: 100%; height: auto; border-radius: 24px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05); display: block; }
+.vc-usp-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+.vc-usp-card { padding: 30px; background: #fff; border-radius: 20px; font-weight: 600; text-align: center; color: var(--text); box-shadow: 0 10px 20px rgba(0, 0, 0, 0.02); min-height: 100px; }
+.vc-logo { height: 40px; width: auto; }
+.vc-nav { display: flex; gap: 20px; font-weight: 600; }
+
+.vc-h1-input { 
+    font-family: 'Outfit', sans-serif; 
+    font-size: 3.5rem; 
+    line-height: 1.1; 
+    margin-bottom: 20px; 
+    width: 100%; 
+    background: var(--accent-gradient); 
+    background-clip: text;
+    -webkit-background-clip: text; 
+    color: transparent; 
+    border: none; 
+    font-weight: 700; 
+    padding: 0; 
+    min-height: 40px; 
+    overflow: hidden;
+    resize: none;
+}
+.vc-h1-input:focus { color: var(--text); background: transparent; -webkit-background-clip: border-box; background-clip: border-box; }
+.vc-p-input { font-size: 1.25rem; line-height: 1.7; color: var(--muted); width: 100%; min-height: 40px; resize: none; border: 1px dashed transparent; overflow: hidden; }
+.vc-p-input:focus { border-color: #cbd5e1; background: #fff; color: #1a1336; }
+.vc-h3-input { font-family: 'Outfit', sans-serif; font-size: 1.8rem; margin-bottom: 20px; border: none; min-height: 50px; }
+
+/* ── Device Switcher ─────────────────────────────────────────
+   Alle stijlen voor .device-switcher en .btn-device staan
+   gecentraliseerd in admin_shared.css.
+   ────────────────────────────────────────────────────────── */
+
+
+/* ── Grid Guides ─────────────────────────────────────────── */
+.grid-guide {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+    display: grid;
+    gap: 10px;
+    z-index: 0;
+}
+.grid-guide-col {
+    background: rgba(0, 0, 0, 0.03);
+    border-left: 1px dashed rgba(0, 0, 0, 0.1);
+    border-right: 1px dashed rgba(0, 0, 0, 0.1);
+    height: 100%;
+}
+
+/* ── Form Actions ───────────────────────────────────────── */
+.form-card-footer {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+/* ── Modal Editor ────────────────────────────────────────── */
+.editor-modal-header-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.btn-editor-toggle-ui {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    color: var(--text-main);
+    padding: 6px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.editor-modal-body-ui {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: 0;
+}
+
+.editor-textarea-plain-ui {
+    flex: 1;
+    width: 100%;
+    min-height: 400px;
+    padding: 20px;
+    font-family: 'Inter', sans-serif;
+    font-size: 1rem;
+    line-height: 1.7;
+    border: none;
+    resize: vertical;
+    outline: none;
+    background: #fff;
+    color: #1e293b;
+}
+
+.editor-textarea-html-ui {
+    display: none;
+    flex: 1;
+    width: 100%;
+    min-height: 400px;
+    padding: 20px;
+    font-family: monospace;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    border: none;
+    resize: vertical;
+    outline: none;
+    background: #f8fafc;
+    color: #1e293b;
+}
+
+.vc-dimensions {
+    position: absolute;
+    bottom: -20px;
+    right: 5px;
+    font-size: 0.6rem;
+    color: var(--muted);
+    font-weight: 700;
+    opacity: 0.5;
+}

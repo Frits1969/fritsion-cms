@@ -20,6 +20,7 @@ $slug_tip = $slug_tip ?? "De 'slug' is het deel van de URL dat na de domeinnaam 
     <!-- Google Fonts: Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/assets/css/admin_shared.css">
+    <link rel="stylesheet" href="/assets/css/admin_pages.css">
     <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
 </head>
 
@@ -28,31 +29,28 @@ $slug_tip = $slug_tip ?? "De 'slug' is het deel van de URL dat na de domeinnaam 
 
     <div class="main-wrapper">
         <header class="topbar">
-            <div style="font-weight: 600; color: var(--text-muted);"><?= $backoffice_title ?> / <?= $pages_title ?> /
+            <div class="topbar-title"><?= $backoffice_title ?> / <?= $pages_title ?> /
                 <?= ($mode === 'edit' ? $btn_edit : $btn_add_page) ?>
             </div>
 
             <div class="topbar-actions">
                 <a href="/backoffice/pages"
-                    style="color: var(--text-muted); text-decoration: none; font-size: 0.9rem;"><?= $nav_back_to_dashboard ?></a>
+                    class="topbar-back-link"><?= $nav_back_to_dashboard ?></a>
 
                 <div class="user-widget" id="user-widget">
-                    <div class="user-avatar"
-                        style="width: 32px; height: 32px; background: var(--accent-gradient); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.85rem; color: white;">
+                    <div class="user-avatar">
                         <?php
                         $name = $_SESSION['username'] ?? 'Admin';
                         echo strtoupper(substr($name, 0, 1) . (strlen($name) > 1 ? substr($name, 1, 1) : ''));
                         ?>
                     </div>
-                    <div class="user-info" style="display: flex; flex-direction: column; margin-left: 10px;">
-                        <span class="user-name"
-                            style="font-size: 0.9rem; font-weight: 600;"><?= $_SESSION['username'] ?? 'Admin' ?></span>
-                        <span class="user-role"
-                            style="font-size: 0.75rem; color: var(--text-muted);"><?= $role_super_admin ?></span>
+                    <div class="user-info">
+                        <span class="user-name"><?= $_SESSION['username'] ?? 'Admin' ?></span>
+                        <span class="user-role"><?= $role_super_admin ?></span>
                     </div>
                     <div class="user-menu" id="user-menu">
                         <a href="/backoffice/profile" class="menu-item"><?= $nav_profile ?></a>
-                        <hr style="margin: 5px 0; border: none; border-top: 1px solid var(--glass-border);">
+                        <hr>
                         <a href="/backoffice/logout" class="menu-item logout"><?= $nav_logout ?></a>
                     </div>
                 </div>
@@ -71,7 +69,7 @@ $slug_tip = $slug_tip ?? "De 'slug' is het deel van de URL dat na de domeinnaam 
             </div>
         </header>
 
-        <main class="content">
+        <main class="content main-content-header">
             <?php if (isset($error) && $error): ?>
                 <div class="alert alert-error"><span>⚠️</span> <?= $error ?></div>
             <?php endif; ?>
@@ -80,15 +78,15 @@ $slug_tip = $slug_tip ?? "De 'slug' is het deel van de URL dat na de domeinnaam 
                 <div class="alert alert-success"><span>✅</span> <?= $success ?></div>
             <?php endif; ?>
 
-            <div class="header-section">
+            <div class="header-section header-section-inner">
                 <div>
                     <h1><?= ($mode === 'edit' ? $btn_edit : $btn_add_page) ?></h1>
                     <p><?= ($mode === 'edit' ? $success_page_updated : $pages_desc) ?></p>
                 </div>
             </div>
 
-            <div class="editor-container">
-                <div class="form-card">
+            <div class="editor-container editor-container-outer">
+                <div class="form-card editor-form-card">
                     <form method="POST" id="pageForm">
                         <div class="form-group">
                             <label for="template_id"><?= $label_template ?? 'Template' ?></label>
@@ -111,27 +109,34 @@ $slug_tip = $slug_tip ?? "De 'slug' is het deel van de URL dat na de domeinnaam 
                                     </option>
                                 <?php endforeach; ?>
                             </select>
-                            <div style="display:flex; gap:8px; margin-top:8px; align-items:center;">
-                                <button type="button" id="btn-refresh-template" onclick="refreshTemplate()" style="display:none; background:var(--glass-bg); border:1px solid var(--glass-border); color:var(--text-muted); padding:5px 12px; border-radius:8px; font-size:0.8rem; cursor:pointer; transition:0.2s;" title="<?= $lang['tooltip_refresh_template'] ?? 'Herlaad laatste template-indeling' ?>">
+                            <div class="template-control-group">
+                                <button type="button" id="btn-refresh-template" onclick="refreshTemplate()" class="btn-refresh-template-ui" title="<?= $lang['tooltip_refresh_template'] ?? 'Herlaad laatste template-indeling' ?>">
                                     🔄 <?= $lang['btn_refresh_template'] ?? 'Template vernieuwen' ?>
                                 </button>
-                                <small id="template-refresh-hint" style="display:none; color:var(--text-muted); font-size:0.75rem;">💡 <?= $lang['msg_template_live'] ?? 'Wijzigingen in de template zijn direct zichtbaar op alle pagina\'s.' ?></small>
+                                <small id="template-refresh-hint" class="template-refresh-hint-ui">💡 <?= $lang['msg_template_live'] ?? 'Wijzigingen in de template zijn direct zichtbaar op alle pagina\'s.' ?></small>
                             </div>
                         </div>
 
                         <div class="form-group">
                             <label for="title"><?= $label_title ?></label>
-                            <input type="text" id="title" name="title" class="form-control"
-                                value="<?= htmlspecialchars($page['title'] ?? '') ?>" required>
+                            <textarea id="title" name="title" class="form-control title-textarea-ui"
+                                required><?= htmlspecialchars($page['title'] ?? '') ?></textarea>
                         </div>
 
                         <div class="form-group">
                             <label for="slug"><?= $label_slug ?></label>
                             <input type="text" id="slug" name="slug" class="form-control"
                                 value="<?= htmlspecialchars($page['slug'] ?? '') ?>" required>
-                            <small style="display: block; margin-top: 5px; color: var(--text-muted); font-size: 0.8rem;">
+                            <small class="slug-tip-ui">
                                  <?= $slug_tip ?>
                             </small>
+                        </div>
+
+                        <div class="form-group device-preview-section" id="device-preview-group">
+                            <label class="form-label device-preview-label-ui">
+                                📱 <?= $lang['label_device_preview'] ?? 'Apparaat Weergave' ?>
+                            </label>
+                            <?php include __DIR__ . '/partials/device_switcher.php'; ?>
                         </div>
 
                         <div class="form-group">
@@ -145,22 +150,21 @@ $slug_tip = $slug_tip ?? "De 'slug' is het deel van de URL dat na de domeinnaam 
                                 </option>
                             </select>
                         </div>
+                    </div>
 
-                        <!-- Visual Inline Builder -->
-                        <div id="visual-editor-canvas" class="visual-canvas" style="display: none;">
-                            <div class="empty-template"><?= $msg_select_template ?></div>
-                        </div>
+                    <div id="visual-editor-canvas" class="visual-canvas" style="display: <?= $templateId ? 'block' : 'none' ?>;">
+                        <div class="empty-template"><?= $msg_select_template ?></div>
+                    </div>
 
+                    <div class="form-card editor-form-card">
                         <input type="hidden" name="content" id="content-json">
 
-                        <div
-                            style="display: flex; gap: 20px; align-items: center; justify-content: flex-end; margin-top: 30px;">
+                        <div class="form-card-footer">
                             <button type="submit" class="btn-save"><?= $btn_save ?></button>
                             <a href="/backoffice/pages" class="btn-secondary"><?= $btn_cancel ?></a>
                         </div>
-                    </form>
-                </div>
-
+                    </div>
+                </form>
             </div>
         </main>
     </div>
@@ -170,21 +174,21 @@ $slug_tip = $slug_tip ?? "De 'slug' is het deel van de URL dat na de domeinnaam 
         <div class="editor-modal">
             <div class="editor-modal-header">
                 <div class="editor-modal-title"><span>📝</span> <?= $btn_edit ?></div>
-                <div style="display:flex; gap:10px; align-items:center;">
+                <div class="editor-modal-header-actions">
                     <button type="button" id="editor-mode-toggle" onclick="toggleEditorMode()"
-                        style="background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text-color); padding: 6px 14px; border-radius: 8px; cursor:pointer; font-size:0.85rem; font-weight:600;">
+                        class="btn-editor-toggle-ui">
                         &lt;/&gt; HTML weergave
                     </button>
                     <button type="button" class="editor-modal-close" onclick="closePopupEditor()">&times;</button>
                 </div>
             </div>
-            <div class="editor-modal-body" style="display:flex; flex-direction:column; gap:0; padding:0;">
+            <div class="editor-modal-body editor-modal-body-ui">
                 <textarea id="editor-plain"
-                    style="flex:1; width:100%; min-height:340px; padding:20px; font-family:'Inter',sans-serif; font-size:1rem; line-height:1.7; border:none; resize:vertical; outline:none; background:#fff; color:#1e293b;"
-                    placeholder="<?= $lang['placeholder_text'] ?? 'Voer hier uw tekst in...' ?>"></textarea>
+                    class="editor-textarea-plain-ui"
+                    placeholder=""></textarea>
                 <textarea id="editor-html"
-                    style="display:none; flex:1; width:100%; min-height:340px; padding:20px; font-family:monospace; font-size:0.9rem; line-height:1.6; border:none; resize:vertical; outline:none; background:#f8fafc; color:#1e293b;"
-                    placeholder="&lt;p&gt;HTML code hier...&lt;/p&gt;"></textarea>
+                    class="editor-textarea-html-ui"
+                    placeholder=""></textarea>
             </div>
             <div class="editor-modal-footer">
                 <button type="button" class="btn-modal-cancel" onclick="closePopupEditor()"><?= $btn_cancel ?></button>
@@ -218,54 +222,48 @@ $slug_tip = $slug_tip ?? "De 'slug' is het deel van de URL dat na de domeinnaam 
         const langSwitcher = document.getElementById('lang-switcher');
 
         const siteSettings = <?= json_encode($siteSettings ?? []) ?>;
-        let currentTemplate = null;
-
-        /** Custom CSS injected purely for the visual canvas inside the CMS admin view */
-        const canvasStyles = `
-            .visual-canvas {
-                --primary: #3B2A8C;
-                --accent: #E8186A;
-                --text: #1A1336;
-                --muted: #64748b;
-                --bg: #f8fafc;
-                --accent-gradient: linear-gradient(135deg, #E8186A 0%, #C41257 40%, #F0961B 100%);
-                border: 2px solid #e2e8f0; border-radius: 12px; overflow: hidden; margin-top: 20px;
-                background: var(--bg); color: var(--text); line-height: 1.6; font-family: 'Inter', sans-serif;
-            }
-            .vc-header { background: #fff; border-bottom: 1px solid #e2e8f0; }
-            .vc-header-inner { height: 80px; display: flex; align-items: center; justify-content: space-between; gap: 40px; }
-            .vc-footer { background: var(--text); color: white; padding: 80px 0; margin-top: 80px; }
-            .vc-footer-inner { display: grid; gap: 40px; }
-            .vc-container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
-            .vc-main { padding: 60px 0; }
-            .vc-row { display: grid; gap: 40px; margin-bottom: 80px; align-items: center; }
-            .vc-col { position: relative; border: 1px dashed transparent; min-height: 100px; transition: 0.3s; }
-            .vc-col:hover { border-color: #cbd5e1; }
-            .vc-h-section { display: flex; align-items: center; gap: 20px; flex: 1; }
-            
-            .vc-input-transparent {
-                width: 100%; background: transparent; border: 1px dashed #cbd5e1; padding: 8px; font-family: inherit; font-size: inherit; color: inherit; border-radius: 4px; transition: 0.2s;
-            }
-            .vc-input-transparent:focus { border-color: var(--accent); outline: none; background: #fff; color: #1e293b; }
-            
-            .vc-cta-button { display: inline-block; background: var(--accent-gradient); color: white; border-radius: 50px; text-decoration: none; font-weight: 700; border: none; padding: 15px 35px; box-shadow: 0 10px 20px rgba(232, 24, 106, 0.2); }
-            .vc-img-preview { max-width: 100%; height: auto; border-radius: 24px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05); display: block; }
-            .vc-usp-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
-            .vc-usp-card { padding: 30px; background: #fff; border-radius: 20px; font-weight: 600; text-align: center; color: var(--text); box-shadow: 0 10px 20px rgba(0, 0, 0, 0.02); }
-            .vc-logo { height: 40px; width: auto; }
-            .vc-nav { display: flex; gap: 20px; font-weight: 600; }
-            
-            .vc-h1-input { font-family: 'Outfit', sans-serif; font-size: 3.5rem; line-height: 1.1; margin-bottom: 20px; width: 100%; background: var(--accent-gradient); -webkit-background-clip: text; color: transparent; border: none; font-weight: 700; padding: 0; }
-            .vc-h1-input:focus { color: var(--text); background: transparent; -webkit-background-clip: border-box; }
-            .vc-p-input { font-size: 1.25rem; color: var(--muted); width: 100%; min-height: 100px; resize: vertical; border: 1px dashed transparent; }
-            .vc-p-input:focus { border-color: #cbd5e1; background: #fff; color: #1a1336; }
-            .vc-h3-input { font-family: 'Outfit', sans-serif; font-size: 1.8rem; margin-bottom: 20px; border: none; }
-        `;
         
-        // Inject styles
-        const styleTag = document.createElement('style');
-        styleTag.innerHTML = canvasStyles;
-        document.head.appendChild(styleTag);
+        let currentTemplate = null;
+        let currentMaxCols = 12;
+
+        function setDevicePreview(btn, maxCols = 12) {
+            document.querySelectorAll('.btn-device').forEach(el => el.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            
+            if (visualCanvas) {
+                let w = '100%';
+                if (maxCols === 1) w = '640px';
+                else if (maxCols === 2) w = '768px';
+                else if (maxCols === 3) w = '1024px';
+                else if (maxCols === 4) w = '1280px';
+                else if (maxCols === 6) w = '1440px';
+                else w = '100%';
+                
+                visualCanvas.style.width = w;
+                visualCanvas.style.margin = (maxCols === 12) ? '40px 0' : '20px auto';
+                visualCanvas.style.transition = 'width 0.4s ease';
+            }
+            
+            if (currentMaxCols !== maxCols) {
+                currentMaxCols = maxCols;
+                if (currentTemplate) {
+                    renderVisualCanvas();
+                }
+            }
+        }
+
+        function calcDeviceSpan(item, deviceMaxCols) {
+            const dw = item.deviceWidths;
+            if (dw && dw[deviceMaxCols] !== undefined) {
+                return parseInt(dw[deviceMaxCols]); 
+            }
+            const width12 = parseInt(item.width ?? 12);
+            if (width12 === 0) return 0;
+            if (deviceMaxCols === 1) return 1;
+            if (width12 >= 12) return deviceMaxCols;
+            const span = Math.round((width12 / 12) * deviceMaxCols);
+            return Math.max(1, Math.min(deviceMaxCols, span));
+        }
 
         async function handleTemplateChange(templateId) {
             if (!templateId) {
@@ -287,6 +285,9 @@ $slug_tip = $slug_tip ?? "De 'slug' is het deel van de URL dat na de domeinnaam 
                 // Show the refresh button and hint
                 document.getElementById('btn-refresh-template').style.display = 'inline-block';
                 document.getElementById('template-refresh-hint').style.display = 'inline';
+                
+                // Show the device switcher
+                document.getElementById('device-preview-group').style.display = 'block';
 
                 renderVisualCanvas();
             } catch (error) {
@@ -342,19 +343,29 @@ $slug_tip = $slug_tip ?? "De 'slug' is het deel van de URL dat na de domeinnaam 
             if (!currentTemplate) return;
             visualCanvas.style.display = 'block';
             const layout = JSON.parse(currentTemplate.layout_json);
+            const mc = currentMaxCols;
+
+            const gridGuide = mc > 1 
+                ? `<div class="grid-guide" style="grid-template-columns: repeat(${mc}, 1fr);">` + Array(mc).fill('<div class="grid-guide-col"></div>').join('') + `</div>`
+                : '';
 
             let html = `
                 <div class="vc-header">
-                    <div class="vc-container vc-header-inner">
+                    <div class="vc-container vc-header-inner" style="position:relative;">
+                        ${gridGuide}
                         ${renderVisualSection(layout.header, 'header')}
                     </div>
                 </div>
-                <div class="vc-main vc-container">
+                <div class="vc-main vc-container" style="position:relative;">
+                    ${gridGuide}
                     ${renderVisualSection(layout.main, 'main')}
                 </div>
                 <div class="vc-footer">
-                    <div class="vc-container vc-footer-inner" style="grid-template-columns: repeat(${layout.footer?.sections?.length || 1}, 1fr);">
-                        ${renderVisualSection(layout.footer, 'footer')}
+                    <div class="vc-container vc-footer-inner" style="position:relative;">
+                        ${gridGuide}
+                        <div style="display: grid; gap: 40px; grid-template-columns: repeat(${mc}, 1fr);">
+                            ${renderVisualSection(layout.footer, 'footer')}
+                        </div>
                     </div>
                 </div>
             `;
@@ -376,6 +387,17 @@ $slug_tip = $slug_tip ?? "De 'slug' is het deel van de URL dat na de domeinnaam 
                     }
                 });
             });
+
+            // Auto-resize all textareas after rendering
+            setTimeout(() => {
+                visualCanvas.querySelectorAll('textarea').forEach(autoResizeTextarea);
+            }, 100);
+        }
+
+        function autoResizeTextarea(el) {
+            if (!el) return;
+            el.style.height = 'auto';
+            el.style.height = (el.scrollHeight) + 'px';
         }
 
         function renderVisualSection(section, type) {
@@ -383,18 +405,18 @@ $slug_tip = $slug_tip ?? "De 'slug' is het deel van de URL dat na de domeinnaam 
             let html = '';
 
             if (type === 'main') {
-                const gridGuide = '<div class="grid-guide"></div>';
-                html += `<div class="vc-main-grid" style="display: grid; grid-template-columns: repeat(12, 1fr); grid-auto-rows: min-content; gap: 80px 40px; position: relative;">`;
-                html += gridGuide;
+                html += `<div class="vc-main-grid" style="display: grid; grid-template-columns: repeat(${currentMaxCols}, 1fr); grid-auto-rows: min-content; gap: 80px 40px; position: relative; z-index: 1;">`;
                 section.rows.forEach((row, ri) => {
                     const isFirst = ri === 0;
                     const isLast = ri === section.rows.length - 1;
                     
                     row.columns.forEach((col, ci) => {
-                        const width = col.width || Math.floor(12 / (row.columns.length || 1));
+                        const span = calcDeviceSpan(col, currentMaxCols);
                         const rowSpan = col.rowSpan || 1;
                         
-                        html += `<div class="vc-col" style="grid-column-end: span ${width}; grid-row: span ${rowSpan}; position: relative; z-index: 1;">`;
+                        if (span === 0) return; // Hidden on this device
+
+                        html += `<div class="vc-col" style="grid-column: span ${span}; grid-row: span ${rowSpan}; position: relative; z-index: 1;">`;
                         
                         // Row Actions (only on first column of each row)
                         if (ci === 0) {
@@ -406,20 +428,23 @@ $slug_tip = $slug_tip ?? "De 'slug' is het deel van de URL dat na de domeinnaam 
                             `;
                         }
                         
-                        html += `${renderVisualBlock(col.type, `main.rows.${ri}.columns.${ci}`)}<span class="vc-dimensions">${width} × ${rowSpan}</span></div>`;
+                        html += `${renderVisualBlock(col.type, `main.rows.${ri}.columns.${ci}`)}<span class="vc-dimensions">${span} × ${rowSpan}</span></div>`;
                     });
                 });
                 html += `</div>`;
             } else {
                 // Header or Footer
-                const gridGuide = '<div class="grid-guide"></div>';
+                const mc = currentMaxCols;
                 const areaHeight = section.height || (type === 'header' ? '90px' : '120px');
-                html += `<div class="vc-row" style="display: grid; grid-template-columns: repeat(12, 1fr); grid-auto-rows: min-content; gap: 40px; margin-bottom: 40px; align-items: center; position: relative; min-height: ${areaHeight === 'auto' ? 'initial' : areaHeight};">`;
-                html += gridGuide;
-                section.sections.forEach((sec, si) => {
-                    const width = sec.width || Math.floor(12 / (section.sections.length || 1));
+                html += `<div class="vc-row" style="display: grid; grid-template-columns: repeat(${mc}, 1fr); grid-auto-rows: min-content; gap: 40px; align-items: center; position: relative; z-index: 1; min-height: ${areaHeight === 'auto' ? 'initial' : areaHeight};">`;
+                
+                const sections = section.sections || [];
+                sections.forEach((sec, si) => {
+                    const span = calcDeviceSpan(sec, mc);
                     const rowSpan = sec.rowSpan || 1;
-                    html += `<div class="vc-col" style="grid-column: span ${width}; grid-row: span ${rowSpan}; position: relative; z-index: 1;">${renderVisualBlock(sec.type, `${type}.sections.${si}`)}<span class="vc-dimensions">${width} × ${rowSpan}</span></div>`;
+                    if (span === 0) return; // Hidden
+
+                    html += `<div class="vc-col" style="grid-column: span ${span}; grid-row: span ${rowSpan}; position: relative; z-index: 1;">${renderVisualBlock(sec.type, `${type}.sections.${si}`)}<span class="vc-dimensions">${span} × ${rowSpan}</span></div>`;
                 });
                 html += `</div>`;
             }
@@ -433,12 +458,14 @@ $slug_tip = $slug_tip ?? "De 'slug' is het deel van de URL dat na de domeinnaam 
                 case 'empty':
                     return `<div style="border:1px dashed #cbd5e1; height:60px; display:flex; align-items:center; justify-content:center; color:#cbd5e1; font-weight:600; font-size:0.75rem; border-radius:12px;">LEEG</div>`;
                 case 'text':
+                    const displayHtmlContent = data.text || '';
+                    const strippedTextContent = typeof stripHtml === 'function' ? stripHtml(displayHtmlContent) : displayHtmlContent;
                     return `
                         <div>
-                            <input type="text" class="vc-input-transparent vc-h1-input" placeholder="<?= $lang['placeholder_text'] ?? 'Voer hier uw titel in...' ?>" value="${data.title || ''}" oninput="updateData('${path}.title', this.value)">
+                            <textarea class="vc-input-transparent vc-h1-input" placeholder="" oninput="updateData('${path}.title', this.value); autoResizeTextarea(this);">${data.title || ''}</textarea>
                             <div style="position:relative;">
                                 <button type="button" class="btn-edit-popup" onclick="openPopupEditor('${path}.text')" style="position:absolute; right:5px; top:-25px; z-index:10; font-size:12px; padding:2px 8px;">✎ Editor</button>
-                                <textarea id="textarea_${path.replace(/\./g, '_')}_text" class="vc-input-transparent vc-p-input" placeholder="<?= $lang['placeholder_text'] ?? 'Voer hier uw tekst in of gebruik de uitgebreide editor...' ?>" oninput="updateData('${path}.text', this.value)">${data.text || ''}</textarea>
+                                <textarea id="textarea_${path.replace(/\./g, '_')}_text" class="vc-input-transparent vc-p-input" placeholder="" oninput="updateData('${path}.text', this.value); autoResizeTextarea(this);">${strippedTextContent}</textarea>
                             </div>
                         </div>
                     `;
@@ -453,12 +480,12 @@ $slug_tip = $slug_tip ?? "De 'slug' is het deel van de URL dat na de domeinnaam 
                 case 'cta':
                     return `
                         <div>
-                            <input type="text" class="vc-input-transparent vc-h3-input" placeholder="Actie Titel" value="${data.title || ''}" oninput="updateData('${path}.title', this.value)">
+                            <textarea class="vc-input-transparent vc-h3-input" placeholder="" oninput="updateData('${path}.title', this.value)">${data.title || ''}</textarea>
                             <div style="margin-bottom:10px;">
-                                <input type="text" class="vc-input-transparent vc-cta-button" placeholder="Knop Tekst (bijv. Registreer Nu)" value="${data.button_text || ''}" oninput="updateData('${path}.button_text', this.value)" style="text-align:center; display:inline-block; max-width:250px;">
+                                <textarea class="vc-input-transparent vc-cta-button" placeholder="" oninput="updateData('${path}.button_text', this.value)" style="text-align:center; display:inline-block; max-width:250px; min-height:60px; padding-top:15px; border-radius:30px;">${data.button_text || ''}</textarea>
                             </div>
                             <div style="display:flex; gap:10px; margin-top:5px;">
-                                <input type="text" class="vc-input-transparent" style="flex:1;" placeholder="Link (bijv. /contact)" value="${data.url || ''}" oninput="updateData('${path}.url', this.value)">
+                                <textarea class="vc-input-transparent" style="flex:1; min-height:45px;" placeholder="" oninput="updateData('${path}.url', this.value)">${data.url || ''}</textarea>
                                 <select class="form-select" style="width:auto; padding:4px 8px; font-size:0.8rem;" onchange="updateData('${path}.target', this.value)">
                                     <option value="_self" ${data.target === '_self' ? 'selected' : ''}>Zelfde venster (_self)</option>
                                     <option value="_blank" ${data.target === '_blank' ? 'selected' : ''}>Nieuw tabblad (_blank)</option>
@@ -477,7 +504,7 @@ $slug_tip = $slug_tip ?? "De 'slug' is het deel van de URL dat na de domeinnaam 
                 case 'menu': 
                     return `
                         <div class="vc-nav">
-                            <input type="text" class="vc-input-transparent" style="text-align:right;" placeholder="Home, Over ons, Contact (komma gescheiden)" value="${data.items || ''}" oninput="updateData('${path}.items', this.value)">
+                            <textarea class="vc-input-transparent" style="text-align:right; min-height:45px;" placeholder="" oninput="updateData('${path}.items', this.value)">${data.items || ''}</textarea>
                         </div>`;
                 case 'language':
                     return `
@@ -489,34 +516,46 @@ $slug_tip = $slug_tip ?? "De 'slug' is het deel van de URL dat na de domeinnaam 
                 case 'usps': 
                     return `
                         <div class="vc-usp-grid">
-                            <input type="text" class="vc-input-transparent vc-usp-card" placeholder="USP 1 (bijv 🚀 Snelle Levering)" value="${data.usp_1 || ''}" oninput="updateData('${path}.usp_1', this.value)">
-                            <input type="text" class="vc-input-transparent vc-usp-card" placeholder="USP 2 (bijv 🛡️ Veilig Betalen)" value="${data.usp_2 || ''}" oninput="updateData('${path}.usp_2', this.value)">
-                            <input type="text" class="vc-input-transparent vc-usp-card" placeholder="USP 3 (bijv 💎 Top Kwaliteit)" value="${data.usp_3 || ''}" oninput="updateData('${path}.usp_3', this.value)">
+                            <textarea class="vc-input-transparent vc-usp-card" placeholder="USP 1" oninput="updateData('${path}.usp_1', this.value)">${data.usp_1 || ''}</textarea>
+                            <textarea class="vc-input-transparent vc-usp-card" placeholder="USP 2" oninput="updateData('${path}.usp_2', this.value)">${data.usp_2 || ''}</textarea>
+                            <textarea class="vc-input-transparent vc-usp-card" placeholder="USP 3" oninput="updateData('${path}.usp_3', this.value)">${data.usp_3 || ''}</textarea>
                         </div>`;
+                case 'usp_card':
+                    return `
+                        <div style="background:white; border-radius:20px; padding:20px; box-shadow:0 10px 30px rgba(0,0,0,0.05); border:1px solid #f1f5f9;">
+                            <div class="dropzone" onclick="document.getElementById('file_${path.replace(/\./g, '_')}').click()" style="height:120px; margin-bottom:15px; display:flex; flex-direction:column; justify-content:center; align-items:center; background:#f8fafc; border:2px dashed #e2e8f0; border-radius:12px; cursor:pointer;" id="dropzone_${path.replace(/\./g, '_')}">
+                                ${data.url ? `<img src="${data.url}" style="max-height:100px; border-radius:8px;">` : `<div style="color:#94a3b8; font-size:0.75rem;">☁️ USP Icoon</div>`}
+                                <input type="file" id="file_${path.replace(/\./g, '_')}" accept="image/*" style="display:none;" data-path="${path}.url" onchange="handleFileUpload(this, '${path}.url', this.parentNode)">
+                                <div class="upload-progress" style="height:4px; background:#10b981; width:0%; transition:0.3s; margin-top:10px; border-radius:2px;"></div>
+                            </div>
+                            <textarea class="vc-input-transparent" style="font-weight:700; font-size:1.1rem; margin-bottom:8px; display:block;" placeholder="USP Kop" oninput="updateData('${path}.title', this.value)">${data.title || ''}</textarea>
+                            <textarea class="vc-input-transparent" style="font-size:0.9rem; color:#64748b; font-weight:400;" placeholder="USP Uitleg (max 200 tekens)" maxlength="200" oninput="updateData('${path}.text', this.value); autoResizeTextarea(this);">${data.text || ''}</textarea>
+                        </div>
+                    `;
                 case 'socials': 
                     return `
                         <div style="display:flex; gap:10px;">
-                            <input type="text" class="vc-input-transparent" placeholder="Facebook Link URL" value="${data.facebook || ''}" oninput="updateData('${path}.facebook', this.value)">
-                            <input type="text" class="vc-input-transparent" placeholder="Instagram Link URL" value="${data.instagram || ''}" oninput="updateData('${path}.instagram', this.value)">
+                            <textarea class="vc-input-transparent" placeholder="" oninput="updateData('${path}.facebook', this.value)" style="min-height:45px;">${data.facebook || ''}</textarea>
+                            <textarea class="vc-input-transparent" placeholder="" oninput="updateData('${path}.instagram', this.value)" style="min-height:45px;">${data.instagram || ''}</textarea>
                         </div>`;
                 case 'video': 
                     return `
                         <div style="background:linear-gradient(135deg, var(--text) 0%, var(--primary) 100%); height:200px; border-radius:24px; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px;">
                             <span style="color:white; font-size:2rem; margin-bottom:10px;">▶</span>
-                            <input type="text" class="vc-input-transparent" style="color:white; border-color:rgba(255,255,255,0.3); text-align:center; max-width:80%;" placeholder="YouTube/Video Embed URL" value="${data.url || ''}" oninput="updateData('${path}.url', this.value)">
+                            <textarea class="vc-input-transparent" style="color:white; border-color:rgba(255,255,255,0.3); text-align:center; max-width:80%; min-height:45px;" placeholder="" oninput="updateData('${path}.url', this.value)">${data.url || ''}</textarea>
                         </div>`;
                 case 'html': 
                     return `
                         <div style="border:1px dashed #cbd5e1; border-radius:8px; padding:10px;">
                             <div style="font-size:0.8rem; font-weight:600; color:#475569; margin-bottom:5px;">&lt;/&gt; HTML Embed Code</div>
-                            <textarea class="vc-input-transparent" style="font-family:monospace; min-height:80px; border:none; resize:vertical; background:#f8fafc;" placeholder="Voer hier je eigen HTML..." oninput="updateData('${path}.code', this.value)">${data.code || ''}</textarea>
+                            <textarea class="vc-input-transparent" style="font-family:monospace; min-height:120px; border:none; resize:vertical; background:#f8fafc;" placeholder="" oninput="updateData('${path}.code', this.value)">${data.code || ''}</textarea>
                         </div>`;
                 case 'map': 
                     return `
                         <div style="background:#e0f2fe; height:300px; border-radius:24px; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:20px; text-align:center;">
                             <span style="font-size:2rem;">📍</span>
                             <div style="color:#0369a1; font-weight:600; margin:10px 0;">Kaart</div>
-                            <input type="text" class="vc-input-transparent" style="background:#fff; border-color:#bae6fd; color:#0369a1; text-align:center; max-width:300px;" placeholder="Adres (bijv. Straat 1, Stad)" value="${data.address || ''}" oninput="updateData('${path}.address', this.value)">
+                            <textarea class="vc-input-transparent" style="background:#fff; border-color:#bae6fd; color:#0369a1; text-align:center; max-width:300px; min-height:60px;" placeholder="" oninput="updateData('${path}.address', this.value)">${data.address || ''}</textarea>
                         </div>`;
                 default: return `<div style="border:1px dashed #eee; padding:10px;">Blok: ${type}</div>`;
             }
@@ -534,15 +573,15 @@ $slug_tip = $slug_tip ?? "De 'slug' is het deel van de URL dat na de domeinnaam 
             formData.append('file', file);
 
             const progress = dz.querySelector('.upload-progress');
-            progress.style.width = '0%';
+            if (progress) progress.style.width = '0%';
 
             const xhr = new XMLHttpRequest();
             xhr.open('POST', '/backoffice/media/upload', true);
 
             xhr.upload.onprogress = (e) => {
-                if (e.lengthComputable) {
+                if (e.lengthComputable && progress) {
                     const percent = (e.loaded / e.total) * 100;
-                    progress.style.width = percent + '%';
+                    if (progress) progress.style.width = percent + '%';
                 }
             };
 
@@ -620,14 +659,29 @@ $slug_tip = $slug_tip ?? "De 'slug' is het deel van de URL dat na de domeinnaam 
         let activeEditorPath = null;
         let tinymceInstance = null;
 
+        function hasHtmlTags(text) {
+            return /<[a-z][\s\S]*>/i.test(text);
+        }
+
         function openPopupEditor(path) {
             activeEditorPath = path;
             const rawContent = getDeepValue(getLangData(), path) || '';
             
-            // Always open in plain-text view
-            editorMode = 'plain';
-            document.getElementById('editor-plain').value = stripHtml(rawContent);
-            document.getElementById('editor-html').value = rawContent;
+            // Set initial content
+            const plainEl = document.getElementById('editor-plain');
+            const htmlEl = document.getElementById('editor-html');
+            
+            plainEl.value = stripHtml(rawContent);
+            htmlEl.value = rawContent;
+            
+            // Add real-time sync listeners (once)
+            if (!plainEl.dataset.syncBound) {
+                plainEl.dataset.syncBound = "true";
+                // Realtime listeners zijn verwijderd om conflicten te voorkomen.
+                // Synchronisatie wordt nu specifiek geregeld in toggleEditorMode() en savePopupEditorContent().
+            }
+
+            editorMode = hasHtmlTags(rawContent) ? 'html' : 'plain';
             syncModeUI();
             
             document.getElementById('editor-modal').classList.add('active');
@@ -641,13 +695,19 @@ $slug_tip = $slug_tip ?? "De 'slug' is het deel van de URL dat na de domeinnaam 
         function savePopupEditorContent() {
             if (!activeEditorPath) return;
 
-            // Always save as plain text (strip any HTML)
+            const plainEl = document.getElementById('editor-plain');
+            const htmlEl  = document.getElementById('editor-html');
+
             let finalContent;
             if (editorMode === 'html') {
-                // They were editing HTML — strip it to plain text
-                finalContent = stripHtml(document.getElementById('editor-html').value);
+                finalContent = htmlEl.value;
             } else {
-                finalContent = document.getElementById('editor-plain').value;
+                // Controleer of de gebruiker de plain text actief gemuteerd heeft óf er helemaal geen HTML was
+                if (plainEl.value.trim() !== stripHtml(htmlEl.value).trim() || !hasHtmlTags(htmlEl.value)) {
+                    finalContent = textToHtml(plainEl.value);
+                } else {
+                    finalContent = htmlEl.value; // Behoud de oorspronkelijke HTML bron
+                }
             }
 
             updateData(activeEditorPath, finalContent);
@@ -659,18 +719,34 @@ $slug_tip = $slug_tip ?? "De 'slug' is het deel van de URL dat na de domeinnaam 
         let editorMode = 'plain';
 
         function toggleEditorMode() {
+            const plainEl = document.getElementById('editor-plain');
+            const htmlEl  = document.getElementById('editor-html');
+
             if (editorMode === 'plain') {
-                // Switch to HTML: take plain text, don't add HTML yet (show raw stored value)
-                const stored = getDeepValue(getLangData(), activeEditorPath) || '';
-                document.getElementById('editor-html').value = stored;
+                // plain -> html
+                // Zet de aangepaste (gemuteerde) tekst om in HTML.
+                // Of converteer direct als er nog geen HTML codes aanwezig waren.
+                if (plainEl.value.trim() !== stripHtml(htmlEl.value).trim() || !hasHtmlTags(htmlEl.value)) {
+                    htmlEl.value = textToHtml(plainEl.value);
+                }
                 editorMode = 'html';
             } else {
-                // Switch to plain: strip HTML from the current html textarea
-                const htmlVal = document.getElementById('editor-html').value;
-                document.getElementById('editor-plain').value = stripHtml(htmlVal);
+                // html -> plain
+                plainEl.value = stripHtml(htmlEl.value);
                 editorMode = 'plain';
             }
             syncModeUI();
+        }
+
+        function textToHtml(text) {
+            if (!text || !text.trim()) return '';
+            // Splits op dubbele regeleindes (alinea's), wikkel elk in <p>
+            return text
+                .split(/\n{2,}/)
+                .map(p => p.trim())
+                .filter(p => p.length > 0)
+                .map(p => '<p>' + p.replace(/\n/g, '<br>') + '</p>')
+                .join('\n');
         }
 
         function syncModeUI() {
@@ -680,16 +756,17 @@ $slug_tip = $slug_tip ?? "De 'slug' is het deel van de URL dat na de domeinnaam 
 
             if (editorMode === 'plain') {
                 plainEl.style.display = 'block';
-                htmlEl.style.display  = 'none';
-                toggleBtn.textContent = '&lt;/&gt; HTML weergave';
+                htmlEl.style.display = 'none';
+                toggleBtn.textContent = ' </> HTML weergave';
             } else {
                 plainEl.style.display = 'none';
-                htmlEl.style.display  = 'block';
-                toggleBtn.textContent = '📝 Tekst weergave';
+                htmlEl.style.display = 'block';
+                toggleBtn.textContent = ' 📝 Tekst weergave';
             }
         }
 
         function stripHtml(html) {
+            if (!html) return '';
             const tmp = document.createElement('div');
             tmp.innerHTML = html;
             // Preserve newlines from block elements

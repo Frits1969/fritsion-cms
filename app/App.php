@@ -18,7 +18,7 @@ use Fritsion\Controllers\AdminController;
 
 class App
 {
-    const VERSION = '0.1.7';
+    const VERSION = '0.1.8';
     protected static $instance;
 
     public function __construct()
@@ -104,6 +104,16 @@ class App
                     $controller->deletePage($matches[1]);
                 } elseif ($uri === '/backoffice/site-status/toggle') {
                     $controller->toggleSiteStatus();
+                } elseif ($uri === '/backoffice/themes') {
+                    $controller->themes();
+                } elseif ($uri === '/backoffice/themes/add') {
+                    $controller->addTheme();
+                } elseif (preg_match('#^/backoffice/themes/edit/(\d+)$#', $uri, $matches)) {
+                    $controller->editTheme($matches[1]);
+                } elseif (preg_match('#^/backoffice/themes/delete/(\d+)$#', $uri, $matches)) {
+                    $controller->deleteTheme($matches[1]);
+                } elseif (preg_match('#^/backoffice/themes/activate/(\d+)$#', $uri, $matches)) {
+                    $controller->activateTheme($matches[1]);
                 } elseif ($uri === '/backoffice/templates') {
                     $controller->templates();
                 } elseif ($uri === '/backoffice/templates/homepage') {
@@ -126,6 +136,8 @@ class App
                     $controller->getTemplate($matches[1]);
                 } elseif ($uri === '/backoffice/media/upload') {
                     $controller->uploadMedia();
+                } elseif ($uri === '/backoffice/media/list') {
+                    $controller->listMediaJson();
                 } elseif ($uri === '/backoffice/media') {
                     $controller->media();
                 } elseif ($uri === '/backoffice/media/create-folder') {

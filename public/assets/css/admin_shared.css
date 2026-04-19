@@ -115,10 +115,13 @@ body {
     text-align: center;
 }
 
-.sidebar-footer p {
+.sidebar-footer .version-text {
     font-size: 0.8rem;
-    color: #64748b;
-    font-weight: 500;
+    color: var(--text-muted);
+}
+
+.sidebar-footer p {
+    margin-bottom: 0;
 }
 
 .main-wrapper {
@@ -144,6 +147,11 @@ body {
     flex-shrink: 0;
     /* Important: don't let header shrink */
     z-index: 90;
+}
+
+.topbar-title {
+    font-weight: 600;
+    color: var(--text-muted);
 }
 
 .topbar-actions {
@@ -376,6 +384,12 @@ tr:hover td {
     display: none;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
     z-index: 110;
+}
+
+.user-menu hr {
+    margin: 5px 0;
+    border: none;
+    border-top: 1px solid var(--glass-border);
 }
 
 .user-menu.active {
@@ -797,6 +811,139 @@ tr:hover td {
     display: none;
     z-index: 200;
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Dashboard Grid Layout */
+.dashboard-grid-layout {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 40px;
+    margin-top: 40px;
+}
+
+/* Stat Card Variations */
+.stat-card.vertical {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.stat-card-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    width: 100%;
+}
+
+.stat-card-body {
+    flex: 1;
+}
+
+.stat-card-footer-link {
+    width: 100%;
+    padding: 8px;
+    font-size: 0.75rem;
+    text-align: center;
+    border-radius: 8px;
+    font-weight: 700;
+}
+
+/* Latest Pages List */
+.latest-pages-list {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    padding: 15px;
+}
+
+.latest-pages-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.latest-pages-item:last-child {
+    border-bottom: none;
+}
+
+.latest-pages-link {
+    text-decoration: none;
+    color: inherit;
+}
+
+.latest-pages-title {
+    font-weight: 500;
+}
+
+.latest-pages-slug {
+    color: var(--text-muted);
+}
+
+/* System Action Button */
+.btn-reset-danger {
+    display: inline-block;
+    width: 100%;
+    padding: 15px;
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    text-decoration: none;
+    border-radius: 12px;
+    font-weight: 600;
+    text-align: center;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    transition: all 0.3s;
+}
+
+.btn-reset-danger:hover {
+    background: #ef4444 !important;
+    color: white !important;
+    box-shadow: 0 10px 20px rgba(239, 68, 68, 0.2);
+}
+
+/* Media Picker Modal Specific */
+.media-picker-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 15px;
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 10px;
+    background: #f8fafc;
+    border-radius: 12px;
+}
+
+.media-picker-item {
+    aspect-ratio: 1;
+    background: white;
+    border-radius: 10px;
+    border: 2px solid transparent;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.media-picker-item:hover {
+    border-color: var(--accent-pink);
+    transform: scale(1.02);
+}
+
+.media-picker-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.modal-card.wide {
+    max-width: 800px;
+}
+
+@keyframes modalFadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 /* Configurator Specific */
@@ -1702,3 +1849,132 @@ input:checked+.slider:before {
 .vc-col {
     position: relative;
 }
+
+/* ══════════════════════════════════════════════════════════════
+   Gedeelde Device-Switcher stijlen
+   Gebruikt door: layout_configurator.php + pages_edit.php
+   (via partials/device_switcher.php)
+   ══════════════════════════════════════════════════════════════ */
+
+/* Container — altijd 3 knoppen per rij */
+.device-switcher {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 15px;
+}
+
+/* Knop — vierkant, subtiele gradient achtergrond */
+.device-switcher .btn-device {
+    background: linear-gradient(135deg,
+        rgba(59, 42, 140, 0.07) 0%,
+        rgba(232, 24, 106, 0.07) 100%);
+    border: 1px solid rgba(59, 42, 140, 0.15);
+    padding: 12px 8px;
+    cursor: pointer;
+    border-radius: 16px;
+    transition: all 0.35s cubic-bezier(0.165, 0.84, 0.44, 1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    aspect-ratio: 1 / 1;         /* vierkant */
+    min-height: 86px;
+    box-shadow: 0 2px 8px rgba(59, 42, 140, 0.06);
+    position: relative;
+    overflow: hidden;
+}
+
+/* SVG-icoon */
+.device-switcher .btn-device svg {
+    width: 32px;
+    height: 32px;
+    transition: transform 0.35s ease;
+    filter: drop-shadow(0 1px 3px rgba(59, 42, 140, 0.15));
+    flex-shrink: 0;
+}
+
+/* SVG-kleuren in rust-toestand */
+.device-switcher .btn-device svg rect[fill="#FFFFFF"] {
+    fill: var(--accent-purple, #3B2A8C);
+    opacity: 0.75;
+    transition: fill 0.3s ease;
+}
+.device-switcher .btn-device svg circle[fill="#D0C4B5"],
+.device-switcher .btn-device svg rect[fill="#D0C4B5"] {
+    fill: rgba(59, 42, 140, 0.35);
+    transition: fill 0.3s ease;
+}
+
+/* Label (apparaatnaam) */
+.device-switcher .btn-device .device-label {
+    font-size: 0.58rem;
+    font-weight: 700;
+    margin-top: 8px;
+    color: var(--accent-purple, #3B2A8C);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    opacity: 0.75;
+    line-height: 1;
+}
+
+/* Breedte-aanduiding (bijv. 375px) */
+.device-switcher .btn-device .device-width {
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: var(--accent-purple, #3B2A8C);
+    margin-top: 3px;
+    font-family: 'Inter', sans-serif;
+    opacity: 0.85;
+    line-height: 1;
+}
+
+/* Hover */
+.device-switcher .btn-device:hover {
+    transform: translateY(-4px);
+    background: white;
+    border-color: var(--accent-pink, #E8186A);
+    box-shadow: 0 8px 24px rgba(232, 24, 106, 0.15);
+}
+.device-switcher .btn-device:hover svg {
+    transform: scale(1.1);
+}
+.device-switcher .btn-device:hover .device-label,
+.device-switcher .btn-device:hover .device-width {
+    color: var(--accent-pink, #E8186A);
+    opacity: 1;
+}
+
+/* Actief */
+.device-switcher .btn-device.active {
+    background: white;
+    border-color: var(--accent-pink, #E8186A);
+    border-width: 2px;
+    box-shadow: 0 12px 28px rgba(232, 24, 106, 0.18);
+}
+.device-switcher .btn-device.active::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--accent-gradient,
+        linear-gradient(135deg, #E8186A 0%, #C41257 40%, #F0961B 100%));
+}
+.device-switcher .btn-device.active .device-label {
+    color: var(--accent-pink, #E8186A);
+    opacity: 1;
+}
+.device-switcher .btn-device.active .device-width {
+    color: var(--accent-pink, #E8186A);
+    opacity: 1;
+}
+.device-switcher .btn-device.active svg rect[fill="#FFFFFF"] {
+    fill: var(--accent-pink, #E8186A);
+    opacity: 1;
+}
+.device-switcher .btn-device.active svg circle[fill="#D0C4B5"],
+.device-switcher .btn-device.active svg rect[fill="#D0C4B5"] {
+    fill: rgba(232, 24, 106, 0.5);
+}
+

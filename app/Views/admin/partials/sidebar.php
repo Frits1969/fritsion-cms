@@ -38,7 +38,7 @@ $uri = strtok($_SERVER['REQUEST_URI'] ?? '/backoffice', '?');
         </a>
     </nav>
     <div class="sidebar-footer">
-        <p style="font-size: 0.8rem; color: var(--text-muted);">v<?= \Fritsion\App::VERSION ?></p>
+        <p class="version-text">v<?= \Fritsion\App::VERSION ?></p>
     </div>
 </aside>
 

@@ -12,7 +12,7 @@
     <link rel="shortcut icon" href="/assets/logo/logo_fritsion_cms_favicon.ico">
     <style>
         :root {
-            --primary-bg: #F1F4F9;
+            --primary-bg: #F6F5FF;
             --secondary-bg: #FFFFFF;
             --accent-color: #E8186A;
             --accent-orange: #F0961B;
