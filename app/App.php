@@ -104,16 +104,6 @@ class App
                     $controller->deletePage($matches[1]);
                 } elseif ($uri === '/backoffice/site-status/toggle') {
                     $controller->toggleSiteStatus();
-                } elseif ($uri === '/backoffice/themes') {
-                    $controller->themes();
-                } elseif ($uri === '/backoffice/themes/add') {
-                    $controller->addTheme();
-                } elseif (preg_match('#^/backoffice/themes/edit/(\d+)$#', $uri, $matches)) {
-                    $controller->editTheme($matches[1]);
-                } elseif (preg_match('#^/backoffice/themes/delete/(\d+)$#', $uri, $matches)) {
-                    $controller->deleteTheme($matches[1]);
-                } elseif (preg_match('#^/backoffice/themes/activate/(\d+)$#', $uri, $matches)) {
-                    $controller->activateTheme($matches[1]);
                 } elseif ($uri === '/backoffice/templates') {
                     $controller->templates();
                 } elseif ($uri === '/backoffice/templates/homepage') {
