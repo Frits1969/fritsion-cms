@@ -80,4 +80,21 @@ CREATE TABLE IF NOT EXISTS fcms_templates (
 REPLACE INTO fcms_templates (name, type, layout_json, is_active, icon, preview_type) VALUES 
 ('Homepage', 'homepage', '{"header":{"sections":[{"type":"logo"},{"type":"menu"},{"type":"cta"}]},"main":{"rows":[{"columns":[{"type":"text","width":6},{"type":"image","width":6}]}]},"footer":{"sections":[{"type":"text"},{"type":"socials"}]}}', 1, '🏠', 'usps');
 
+-- Themes Table: Visual Themes
+DROP TABLE IF EXISTS fcms_themes;
+CREATE TABLE IF NOT EXISTS fcms_themes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    slug VARCHAR(100) NOT NULL UNIQUE,
+    is_default TINYINT(1) DEFAULT 0,
+    is_active TINYINT(1) DEFAULT 0,
+    settings_json LONGTEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_is_active (is_active)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Default Theme
+REPLACE INTO fcms_themes (name, slug, is_default, is_active, settings_json) VALUES 
+('Standaard', 'default', 1, 1, '{"colors":{"primary":"#007bff","secondary":"#6c757d","accent":"#ffc107","text":"#212529","background":"#ffffff","link":"#0d6efd"},"typography":{"bodyFont":"System UI, sans-serif","headingFont":"System UI, sans-serif","baseSize":"16px"},"spacing":{"sectionPadding":"4rem"}}');
 

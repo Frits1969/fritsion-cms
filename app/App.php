@@ -136,6 +136,16 @@ class App
                     $controller->deleteMedia();
                 } elseif ($uri === '/backoffice/media/rename') {
                     $controller->renameMedia();
+                } elseif ($uri === '/backoffice/themes') {
+                    $controller->themes();
+                } elseif ($uri === '/backoffice/themes/add') {
+                    $controller->addTheme();
+                } elseif (preg_match('#^/backoffice/themes/edit/(\d+)$#', $uri, $matches)) {
+                    $controller->editTheme($matches[1]);
+                } elseif (preg_match('#^/backoffice/themes/delete/(\d+)$#', $uri, $matches)) {
+                    $controller->deleteTheme($matches[1]);
+                } elseif (preg_match('#^/backoffice/themes/activate/(\d+)$#', $uri, $matches)) {
+                    $controller->activateTheme($matches[1]);
                 } else {
                     $controller->index();
                 }
