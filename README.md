@@ -155,11 +155,13 @@ Doel: een werkend CMS‑skelet.
 Fase 2 — Admin UI
 Doel: een gebruiksvriendelijke beheeromgeving.
 
-[ ] Dashboard
+[x] Dashboard
 
-[ ] Contentbeheer
+[x] Contentbeheer
 
-[ ] Media‑manager
+[x] Media‑manager
+
+[x] Thema Systeem & Visual Builder (Beheer alle kleuren, fonts & instellingen zonder code)
 
 Fase 3 — Extensies
 Doel: uitbreidbaarheid en integraties.
@@ -183,6 +185,8 @@ content-model.md → hoe contenttypes werken
 testing-strategy.md → hoe en wat je test
 
 roadmap.md → uitgebreide planning
+
+Themasysteem.md → uitleg over de dynamische thema's en css rendering
 
 🤝 Bijdragen
 Iedereen kan bijdragen via issues of pull requests.

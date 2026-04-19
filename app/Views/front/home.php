@@ -245,15 +245,50 @@ foreach ($layout['footer']['sections'] ?? [] as $i => $sec) {
     <link rel="stylesheet" href="/assets/css/grid.css">
     <style>
         :root {
-            --primary: #3B2A8C;
-            --accent:  #E8186A;
-            --text:    #1A1336;
+<?php
+$c_primary = $themeSettings['colors']['primary'] ?? '#3B2A8C';
+$c_secondary = $themeSettings['colors']['secondary'] ?? '#C41257';
+$c_accent = $themeSettings['colors']['accent'] ?? '#E8186A';
+$c_text = $themeSettings['colors']['text'] ?? '#1A1336';
+$c_bg = $themeSettings['colors']['background'] ?? '#F6F5FF';
+$c_link = $themeSettings['colors']['link'] ?? '#E8186A';
+$c_bg_url = $themeSettings['background_url'] ?? '';
+
+$f_body = $themeSettings['typography']['bodyFont'] ?? "'Inter', sans-serif";
+$f_heading = $themeSettings['typography']['headingFont'] ?? "'Outfit', sans-serif";
+$f_base = $themeSettings['typography']['baseSize'] ?? '16px';
+
+$s_pad = $themeSettings['spacing']['sectionPadding'] ?? '4rem 2rem';
+?>
+            --primary: <?= htmlspecialchars($c_primary) ?>;
+            --secondary: <?= htmlspecialchars($c_secondary) ?>;
+            --accent:  <?= htmlspecialchars($c_accent) ?>;
+            --text:    <?= htmlspecialchars($c_text) ?>;
             --muted:   #64748b;
-            --bg:      #F6F5FF;
-            --accent-gradient: linear-gradient(135deg, #E8186A 0%, #C41257 40%, #F0961B 100%);
+            --bg:      <?= htmlspecialchars($c_bg) ?>;
+            --link:    <?= htmlspecialchars($c_link) ?>;
+            --accent-gradient: linear-gradient(135deg, var(--accent) 0%, var(--secondary) 100%);
+            --body-font: <?= htmlspecialchars($f_body) ?>;
+            --heading-font: <?= htmlspecialchars($f_heading) ?>;
+            --base-size: <?= htmlspecialchars($f_base) ?>;
+            --section-padding: <?= htmlspecialchars($s_pad) ?>;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+        html { font-size: var(--base-size); }
+        body { 
+            font-family: var(--body-font); 
+            background: var(--bg); 
+            color: var(--text); 
+            line-height: 1.6; 
+            <?php if ($c_bg_url): ?>
+            background-image: url('<?= htmlspecialchars($c_bg_url) ?>');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            <?php endif; ?>
+        }
+        h1, h2, h3, h4, h5, h6 { font-family: var(--heading-font); }
+        a { color: var(--link); }
 
         .container { width: 100%; max-width: 100%; padding: 0 40px; margin: 0 auto; }
 

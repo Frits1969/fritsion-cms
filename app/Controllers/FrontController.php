@@ -86,11 +86,52 @@ class FrontController extends BaseController
             }
         }
 
+        // Auto-create fcms_themes if it does not exist
+        $checkTable = Database::query("SHOW TABLES LIKE '{$prefix}themes'");
+        if (!$checkTable || $checkTable->num_rows === 0) {
+            $sql = "CREATE TABLE IF NOT EXISTS `{$prefix}themes` (
+                `id` INT AUTO_INCREMENT PRIMARY KEY,
+                `name` VARCHAR(100) NOT NULL,
+                `slug` VARCHAR(100) NOT NULL UNIQUE,
+                `is_default` TINYINT(1) DEFAULT 0,
+                `is_active` TINYINT(1) DEFAULT 0,
+                `settings_json` LONGTEXT NOT NULL,
+                `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                INDEX idx_is_active (`is_active`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;";
+            Database::query($sql);
+            
+            $seedSql = "REPLACE INTO `{$prefix}themes` (name, slug, is_default, is_active, settings_json) VALUES 
+            ('Standaard', 'default', 1, 1, '{\"colors\":{\"primary\":\"#3B2A8C\",\"secondary\":\"#C41257\",\"accent\":\"#E8186A\",\"text\":\"#1A1336\",\"background\":\"#F6F5FF\",\"link\":\"#E8186A\"},\"typography\":{\"bodyFont\":\"\\\'Inter\\\', sans-serif\",\"headingFont\":\"\\\'Outfit\\\', sans-serif\",\"baseSize\":\"16px\"},\"spacing\":{\"sectionPadding\":\"4rem 2rem\"}}')";
+            Database::query($seedSql);
+        }
+
+        // Fetch active theme settings
+        $themeSettings = [];
+        $themeRes = Database::query("SELECT settings_json FROM {$prefix}themes WHERE is_active = 1 LIMIT 1");
+        if ($themeRes && $themeRes->num_rows > 0) {
+            $row = $themeRes->fetch_assoc();
+            if (!empty($row['settings_json'])) {
+                $themeSettings = json_decode($row['settings_json'], true) ?? [];
+            }
+        } else {
+            // Fallback to default
+            $themeResDef = Database::query("SELECT settings_json FROM {$prefix}themes WHERE is_default = 1 LIMIT 1");
+            if ($themeResDef && $themeResDef->num_rows > 0) {
+                $row = $themeResDef->fetch_assoc();
+                if (!empty($row['settings_json'])) {
+                    $themeSettings = json_decode($row['settings_json'], true) ?? [];
+                }
+            }
+        }
+
         $this->view('front/home', [
             'settings' => $settings,
             'homepageLayout' => $homepageLayout,
             'page' => $page,
-            'allPages' => $allPages
+            'allPages' => $allPages,
+            'themeSettings' => $themeSettings
         ]);
     }
 

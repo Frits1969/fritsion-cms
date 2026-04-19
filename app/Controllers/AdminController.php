@@ -1387,4 +1387,188 @@ class AdminController extends BaseController
         header('Location: /backoffice/templates?deleted=1');
         exit;
     }
+
+    // --- Themes ---
+
+    public function themes()
+    {
+        if (!isset($_SESSION['user_id'])) {
+            header('Location: /backoffice/login');
+            exit;
+        }
+
+        $db = Database::connect();
+        $prefix = Database::getPrefix();
+
+        // Auto-create fcms_themes if it does not exist
+        $checkTable = $db->query("SHOW TABLES LIKE '{$prefix}themes'");
+        if (!$checkTable || $checkTable->num_rows === 0) {
+            $sql = "CREATE TABLE IF NOT EXISTS `{$prefix}themes` (
+                `id` INT AUTO_INCREMENT PRIMARY KEY,
+                `name` VARCHAR(100) NOT NULL,
+                `slug` VARCHAR(100) NOT NULL UNIQUE,
+                `is_default` TINYINT(1) DEFAULT 0,
+                `is_active` TINYINT(1) DEFAULT 0,
+                `settings_json` LONGTEXT NOT NULL,
+                `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                INDEX idx_is_active (`is_active`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;";
+            $db->query($sql);
+            
+            $seedSql = "REPLACE INTO `{$prefix}themes` (name, slug, is_default, is_active, settings_json) VALUES 
+            ('Standaard', 'default', 1, 1, '{\"colors\":{\"primary\":\"#3B2A8C\",\"secondary\":\"#C41257\",\"accent\":\"#E8186A\",\"text\":\"#1A1336\",\"background\":\"#F6F5FF\",\"link\":\"#E8186A\"},\"typography\":{\"bodyFont\":\"\\\'Inter\\\', sans-serif\",\"headingFont\":\"\\\'Outfit\\\', sans-serif\",\"baseSize\":\"16px\"},\"spacing\":{\"sectionPadding\":\"4rem 2rem\"}}')";
+            $db->query($seedSql);
+        }
+
+        $result = $db->query("SELECT * FROM {$prefix}themes ORDER BY is_default DESC, name ASC");
+        $themes = [];
+        if ($result) {
+            while ($row = $result->fetch_assoc()) {
+                $themes[] = $row;
+            }
+        }
+
+        $this->view('admin/themes_list', [
+            'themes' => $themes
+        ]);
+    }
+
+    public function addTheme()
+    {
+        if (!isset($_SESSION['user_id'])) {
+            header('Location: /backoffice/login');
+            exit;
+        }
+
+        $db = Database::connect();
+        $prefix = Database::getPrefix();
+        $error = null;
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $name = $_POST['name'] ?? '';
+            // Generate slug from name
+            $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $name)));
+            
+            $settingsJson = $_POST['settings_json'] ?? '';
+            
+            if (empty($name) || empty($settingsJson)) {
+                $error = "Name and settings are required.";
+            } else {
+                $stmt = $db->prepare("INSERT INTO {$prefix}themes (name, slug, settings_json) VALUES (?, ?, ?)");
+                $stmt->bind_param("sss", $name, $slug, $settingsJson);
+                if ($stmt->execute()) {
+                    header('Location: /backoffice/themes?success=created');
+                    exit;
+                } else {
+                    $error = "Failed to create theme: " . $db->error;
+                }
+                $stmt->close();
+            }
+        }
+
+        $this->view('admin/themes_edit', [
+            'mode' => 'add',
+            'error' => $error,
+            'theme' => null
+        ]);
+    }
+
+    public function editTheme($id)
+    {
+        if (!isset($_SESSION['user_id'])) {
+            header('Location: /backoffice/login');
+            exit;
+        }
+        
+        $db = Database::connect();
+        $prefix = Database::getPrefix();
+        $id = (int)$id;
+        $error = null;
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $name = $_POST['name'] ?? '';
+            $settingsJson = $_POST['settings_json'] ?? '';
+
+            if (empty($name) || empty($settingsJson)) {
+                $error = "Name and settings are required.";
+            } else {
+                $stmt = $db->prepare("UPDATE {$prefix}themes SET name = ?, settings_json = ? WHERE id = ?");
+                $stmt->bind_param("ssi", $name, $settingsJson, $id);
+                if ($stmt->execute()) {
+                    header('Location: /backoffice/themes?success=updated');
+                    exit;
+                } else {
+                    $error = "Failed to update theme: " . $db->error;
+                }
+                $stmt->close();
+            }
+        }
+
+        if (!isset($theme)) {
+            $stmt = $db->prepare("SELECT * FROM {$prefix}themes WHERE id = ?");
+            $stmt->bind_param("i", $id);
+            $stmt->execute();
+            $theme = $stmt->get_result()->fetch_assoc();
+            $stmt->close();
+        }
+
+        if (!$theme) {
+            header('Location: /backoffice/themes?error=not_found');
+            exit;
+        }
+
+        $this->view('admin/themes_edit', [
+            'mode' => 'edit',
+            'error' => $error,
+            'theme' => $theme
+        ]);
+    }
+
+    public function activateTheme($id)
+    {
+        if (!isset($_SESSION['user_id'])) {
+            header('Location: /backoffice/login');
+            exit;
+        }
+        $db = Database::connect();
+        $prefix = Database::getPrefix();
+        $id = (int)$id;
+
+        // Reset all
+        $db->query("UPDATE {$prefix}themes SET is_active = 0");
+        // Activate target
+        $db->query("UPDATE {$prefix}themes SET is_active = 1 WHERE id = $id");
+
+        header('Location: /backoffice/themes?success=activated');
+        exit;
+    }
+
+    public function deleteTheme($id)
+    {
+        if (!isset($_SESSION['user_id'])) {
+            header('Location: /backoffice/login');
+            exit;
+        }
+        $db = Database::connect();
+        $prefix = Database::getPrefix();
+        $id = (int)$id;
+
+        // Prevent deleting default theme
+        $check = $db->query("SELECT is_default, is_active FROM {$prefix}themes WHERE id = $id");
+        if ($check && $row = $check->fetch_assoc()) {
+            if ($row['is_default'] == 1) {
+                header('Location: /backoffice/themes?error=cannot_delete_default');
+                exit;
+            }
+            if ($row['is_active'] == 1) {
+                // Must activate default first
+                $db->query("UPDATE {$prefix}themes SET is_active = 1 WHERE is_default = 1");
+            }
+        }
+
+        $db->query("DELETE FROM {$prefix}themes WHERE id = $id");
+        header('Location: /backoffice/themes?success=deleted');
+        exit;
+    }
 }
